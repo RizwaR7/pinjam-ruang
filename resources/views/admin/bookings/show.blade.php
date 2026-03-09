@@ -48,8 +48,32 @@
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tanggal</label><p class="text-slate-800 font-semibold">{{ $booking->booking_date->format('l, d F Y') }}</p></div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Waktu</label><p class="text-slate-800 font-semibold font-mono">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</p></div>
                             <div class="space-y-1 md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tujuan Penggunaan</label><p class="text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{{ $booking->purpose }}</p></div>
+                            @if($booking->participant_count || $booking->contact_phone)
+                                <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Jumlah Peserta</label><p class="text-slate-800 font-medium">{{ $booking->participant_count ?? '-' }} orang</p></div>
+                                <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">No. HP</label><p class="text-slate-800 font-medium">{{ $booking->contact_phone ?? '-' }}</p></div>
+                            @endif
+                            @if($booking->equipment->isNotEmpty())
+                                <div class="space-y-2 md:col-span-2">
+                                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Fasilitas Tambahan</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($booking->equipment as $eq)
+                                            <span class="inline-flex items-center px-3 py-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-lg text-xs font-semibold">
+                                                <i data-feather="tool" class="w-3 h-3 mr-1.5"></i>{{ $eq->name }} (×{{ $eq->pivot->quantity }})
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                             @if($booking->notes)
                                 <div class="space-y-1 md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Catatan</label><p class="text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{{ $booking->notes }}</p></div>
+                            @endif
+                            @if($booking->permit_file)
+                                <div class="space-y-1 md:col-span-2">
+                                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Surat Izin</label>
+                                    <a href="{{ asset('storage/' . $booking->permit_file) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-cyan-600 hover:bg-cyan-50 hover:border-cyan-200 transition-colors">
+                                        <i data-feather="file-text" class="w-4 h-4 mr-2"></i> Lihat Surat Izin
+                                    </a>
+                                </div>
                             @endif
                             @if($booking->rejection_reason)
                                 <div class="space-y-1 md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-rose-400">Alasan Penolakan</label><p class="text-rose-700 bg-rose-50 p-4 rounded-xl border border-rose-200">{{ $booking->rejection_reason }}</p></div>

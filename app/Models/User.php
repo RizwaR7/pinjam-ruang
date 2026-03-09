@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -55,18 +56,29 @@ class User extends Authenticatable
         return $this->role?->slug === $slug;
     }
 
-    public function bookings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
 
-    public function testRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function appNotifications(): HasMany
     {
-        return $this->hasMany(TestRequest::class);
+        return $this->hasMany(AppNotification::class);
     }
 
-    public function practicumRegistrations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    /**
+     * Check if user is admin (pengelola_sistem or pengelola_gedung)
+     */
+    public function isAdmin(): bool
     {
-        return $this->hasMany(PracticumRegistration::class);
+        return in_array($this->role?->slug, ['pengelola_sistem', 'pengelola_gedung']);
+    }
+
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role?->slug === 'pengelola_sistem';
     }
 }

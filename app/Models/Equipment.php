@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Equipment extends Model
@@ -17,24 +16,21 @@ class Equipment extends Model
         'name',
         'code',
         'description',
-        'room_id',
         'category',
+        'quantity',
         'is_available',
         'condition',
+        'location',
     ];
 
     protected $casts = [
         'is_available' => 'boolean',
+        'quantity' => 'integer',
     ];
 
-    public function room(): BelongsTo
+    public function bookings(): BelongsToMany
     {
-        return $this->belongsTo(Room::class);
-    }
-
-    public function practicumRegistrations(): BelongsToMany
-    {
-        return $this->belongsToMany(PracticumRegistration::class, 'practicum_equipment')
+        return $this->belongsToMany(Booking::class, 'booking_equipment')
             ->withPivot('quantity')
             ->withTimestamps();
     }
@@ -59,13 +55,23 @@ class Equipment extends Model
         };
     }
 
+    public function getConditionBadgeAttribute(): string
+    {
+        return match ($this->condition) {
+            'baik' => 'success',
+            'rusak_ringan' => 'warning',
+            'rusak_berat' => 'danger',
+            default => 'secondary',
+        };
+    }
+
     public function getCategoryLabelAttribute(): string
     {
         return match ($this->category) {
-            'general' => 'Umum',
-            'soil' => 'Tanah',
-            'water' => 'Air',
-            'plant_tissue' => 'Jaringan Tanaman',
+            'elektronik' => 'Elektronik',
+            'furniture' => 'Furniture',
+            'audio_visual' => 'Audio Visual',
+            'lainnya' => 'Lainnya',
             default => $this->category,
         };
     }

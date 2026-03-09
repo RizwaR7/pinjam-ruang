@@ -16,19 +16,30 @@ return new class extends Migration {
             $table->time('end_time');
             $table->string('purpose');
             $table->text('notes')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected', 'finished'])->default('pending');
+            $table->integer('participant_count')->nullable();
+            $table->string('contact_phone')->nullable();
+            $table->string('permit_file')->nullable();   // surat izin upload path
+            $table->enum('status', ['pending', 'approved', 'rejected', 'finished', 'cancelled'])->default('pending');
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('rejection_reason')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
+        });
 
-            $table->index(['room_id', 'booking_date', 'status']);
-            $table->index(['user_id', 'status']);
+        Schema::create('booking_equipment', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('equipment_id')->constrained('equipment')->cascadeOnDelete();
+            $table->integer('quantity')->default(1);
+            $table->timestamps();
+
+            $table->unique(['booking_id', 'equipment_id']);
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('booking_equipment');
         Schema::dropIfExists('bookings');
     }
 };

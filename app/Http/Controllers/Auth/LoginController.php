@@ -50,7 +50,7 @@ class LoginController extends Controller
 
         if (Auth::attempt(['email' => $input['email'], 'password' => $input['password']])) {
             $roleSlug = Auth::user()->role?->slug;
-            if (in_array($roleSlug, ['admin', 'admin-fakultas', 'admin-lab', 'penguji', 'reviewer'])) {
+            if (in_array($roleSlug, ['pengelola_sistem', 'pengelola_gedung'])) {
                 return redirect()->route('admin.home');
             } else {
                 return redirect()->route('home');

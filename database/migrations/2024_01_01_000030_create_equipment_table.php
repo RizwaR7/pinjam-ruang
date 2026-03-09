@@ -12,10 +12,11 @@ return new class extends Migration {
             $table->string('name');
             $table->string('code')->unique();
             $table->text('description')->nullable();
-            $table->foreignId('room_id')->nullable()->constrained('rooms')->nullOnDelete();
-            $table->enum('category', ['general', 'soil', 'water', 'plant_tissue'])->default('general');
+            $table->string('category')->default('elektronik'); // elektronik, furniture, audio_visual, lainnya
+            $table->integer('quantity')->default(1);
             $table->boolean('is_available')->default(true);
             $table->string('condition')->default('baik'); // baik, rusak_ringan, rusak_berat
+            $table->string('location')->nullable(); // lokasi alat
             $table->timestamps();
         });
     }

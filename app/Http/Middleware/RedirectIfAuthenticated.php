@@ -21,7 +21,12 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $roleSlug = Auth::user()->role?->slug;
+                if (in_array($roleSlug, ['pengelola_sistem', 'pengelola_gedung'])) {
+                    return redirect()->route('admin.home');
+                } else {
+                    return redirect(RouteServiceProvider::HOME);
+                }
             }
         }
 

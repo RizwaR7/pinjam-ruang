@@ -83,6 +83,33 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="space-y-2">
+                                    <label for="building" class="block text-sm font-bold text-slate-700">Gedung</label>
+                                    <input type="text" id="building" name="building" list="buildingList" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:bg-white focus:outline-none" value="{{ old('building') }}" placeholder="Contoh: Gedung Teknik">
+                                    <datalist id="buildingList">
+                                        @foreach($buildings as $b)
+                                            <option value="{{ $b }}">
+                                        @endforeach
+                                    </datalist>
+                                    @error('building')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="floor" class="block text-sm font-bold text-slate-700">Lantai</label>
+                                    <input type="text" id="floor" name="floor" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:bg-white focus:outline-none" value="{{ old('floor') }}" placeholder="Contoh: 2">
+                                    @error('floor')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="status" class="block text-sm font-bold text-slate-700">Status Ruangan <span class="text-rose-500">*</span></label>
+                                    <select id="status" name="status" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:bg-white focus:outline-none">
+                                        <option value="tersedia" {{ old('status', 'tersedia') === 'tersedia' ? 'selected' : '' }}>Tersedia</option>
+                                        <option value="dipakai" {{ old('status') === 'dipakai' ? 'selected' : '' }}>Sedang Dipakai</option>
+                                        <option value="maintenance" {{ old('status') === 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                    </select>
+                                    @error('status')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+
                             <div class="space-y-2">
                                 <label for="facilities" class="block text-sm font-bold text-slate-700">Fasilitas</label>
                                 <textarea id="facilities" name="facilities" rows="3" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:bg-white focus:outline-none resize-y" placeholder="Contoh: Proyektor, AC, Whiteboard, PC 40 unit">{{ old('facilities') }}</textarea>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Equipment;
 use App\Models\Room;
 use Illuminate\Http\Request;
 
@@ -13,21 +14,42 @@ class BookingController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::where('user_id', auth()->id())
-            ->with('room')
-            ->orderByDesc('created_at')
-            ->paginate(10);
+        $query = Booking::where('user_id', auth()->id())
+            ->with(['room', 'equipment']);
 
-        return view('bookings.index', compact('bookings'));
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $bookings = $query->orderByDesc('created_at')->paginate(10);
+
+        $stats = [
+            'total' => Booking::where('user_id', auth()->id())->count(),
+            'pending' => Booking::where('user_id', auth()->id())->where('status', 'pending')->count(),
+            'approved' => Booking::where('user_id', auth()->id())->where('status', 'approved')->count(),
+            'rejected' => Booking::where('user_id', auth()->id())->where('status', 'rejected')->count(),
+        ];
+
+        return view('bookings.index', compact('bookings', 'stats'));
     }
 
     public function create()
     {
-        $rooms = Room::where('is_active', true)->orderBy('name')->get();
+        $rooms = Room::where('is_active', true)
+            ->where('status', 'tersedia')
+            ->orderBy('building')
+            ->orderBy('name')
+            ->get();
 
-        return view('bookings.create', compact('rooms'));
+        $equipment = Equipment::where('is_available', true)
+            ->where('condition', '!=', 'rusak_berat')
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get();
+
+        return view('bookings.create', compact('rooms', 'equipment'));
     }
 
     public function store(Request $request)
@@ -39,6 +61,12 @@ class BookingController extends Controller
             'end_time' => 'required|date_format:H:i|after:start_time',
             'purpose' => 'required|string|max:255',
             'notes' => 'nullable|string|max:1000',
+            'participant_count' => 'nullable|integer|min:1',
+            'contact_phone' => 'nullable|string|max:20',
+            'permit_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'equipment' => 'nullable|array',
+            'equipment.*.id' => 'exists:equipment,id',
+            'equipment.*.quantity' => 'integer|min:1',
         ]);
 
         // Check for time conflicts
@@ -59,7 +87,13 @@ class BookingController extends Controller
                 ->with('error', 'Ruangan sudah di-booking pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
         }
 
-        Booking::create([
+        // Handle file upload
+        $permitPath = null;
+        if ($request->hasFile('permit_file')) {
+            $permitPath = $request->file('permit_file')->store('permits', 'public');
+        }
+
+        $booking = Booking::create([
             'user_id' => auth()->id(),
             'room_id' => $validated['room_id'],
             'booking_date' => $validated['booking_date'],
@@ -67,11 +101,23 @@ class BookingController extends Controller
             'end_time' => $validated['end_time'],
             'purpose' => $validated['purpose'],
             'notes' => $validated['notes'] ?? null,
+            'participant_count' => $validated['participant_count'] ?? null,
+            'contact_phone' => $validated['contact_phone'] ?? null,
+            'permit_file' => $permitPath,
             'status' => 'pending',
         ]);
 
+        // Attach equipment
+        if ($request->filled('equipment')) {
+            foreach ($request->equipment as $item) {
+                if (!empty($item['id']) && !empty($item['quantity'])) {
+                    $booking->equipment()->attach($item['id'], ['quantity' => $item['quantity']]);
+                }
+            }
+        }
+
         return redirect()->route('bookings.index')
-            ->with('success', 'Peminjaman berhasil diajukan! Menunggu persetujuan admin.');
+            ->with('success', 'Peminjaman berhasil diajukan! Menunggu persetujuan pengelola.');
     }
 
     public function show(Booking $booking)
@@ -81,7 +127,7 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load(['room', 'approver']);
+        $booking->load(['room', 'approver', 'equipment']);
 
         return view('bookings.show', compact('booking'));
     }

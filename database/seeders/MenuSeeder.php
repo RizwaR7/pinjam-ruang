@@ -10,18 +10,16 @@ class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminRole = Role::where('slug', 'admin')->first();
-        $userRole = Role::where('slug', 'user')->first();
-
         // ──────────────────────────────────────────────
         //  ADMIN MENUS
         // ──────────────────────────────────────────────
 
         $adminDashboard = Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => null, 'name' => 'Admin Dashboard'],
+            ['context' => 'admin', 'parent_id' => null, 'name' => 'Dashboard'],
             ['route_name' => 'admin.home', 'icon' => 'home', 'sort_order' => 0, 'is_active' => true]
         );
 
+        // --- Manage Front End ---
         $front = Menu::updateOrCreate(
             ['context' => 'admin', 'parent_id' => null, 'name' => 'Manage Front End'],
             ['route_name' => null, 'icon' => 'layers', 'sort_order' => 10, 'is_active' => true]
@@ -32,8 +30,9 @@ class MenuSeeder extends Seeder
             ['route_name' => 'admin.menus.index', 'icon' => null, 'sort_order' => 0, 'is_active' => true]
         );
 
+        // --- Manage Users ---
         $users = Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => null, 'name' => 'Manage Users'],
+            ['context' => 'admin', 'parent_id' => null, 'name' => 'Kelola Pengguna'],
             ['route_name' => null, 'icon' => 'users', 'sort_order' => 20, 'is_active' => true]
         );
 
@@ -64,16 +63,11 @@ class MenuSeeder extends Seeder
         );
 
         Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $masterData->id, 'name' => 'Manajemen Alat'],
+            ['context' => 'admin', 'parent_id' => $masterData->id, 'name' => 'Manajemen Fasilitas'],
             ['route_name' => 'admin.equipment.index', 'icon' => 'tool', 'sort_order' => 1, 'is_active' => true]
         );
 
-        Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $masterData->id, 'name' => 'Parameter Pengujian'],
-            ['route_name' => 'admin.test-parameters.index', 'icon' => 'clipboard', 'sort_order' => 2, 'is_active' => true]
-        );
-
-        // --- Booking & Approval (Peminjaman Ruang) ---
+        // --- Peminjaman ---
         $bookingParent = Menu::updateOrCreate(
             ['context' => 'admin', 'parent_id' => null, 'name' => 'Peminjaman'],
             ['route_name' => null, 'icon' => 'calendar', 'sort_order' => 40, 'is_active' => true]
@@ -84,36 +78,9 @@ class MenuSeeder extends Seeder
             ['route_name' => 'admin.bookings.index', 'icon' => 'check-square', 'sort_order' => 0, 'is_active' => true]
         );
 
-        // --- Layanan Pengujian ---
-        $pengujian = Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => null, 'name' => 'Layanan Pengujian'],
-            ['route_name' => null, 'icon' => 'activity', 'sort_order' => 50, 'is_active' => true]
-        );
-
         Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $pengujian->id, 'name' => 'Permohonan Pengujian'],
-            ['route_name' => 'admin.test-requests.index', 'icon' => 'file-text', 'sort_order' => 0, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $pengujian->id, 'name' => 'Verifikasi Pembayaran'],
-            ['route_name' => 'admin.test-requests.payments', 'icon' => 'credit-card', 'sort_order' => 1, 'is_active' => true]
-        );
-
-        // --- Layanan Praktikum ---
-        $praktikum = Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => null, 'name' => 'Layanan Praktikum'],
-            ['route_name' => null, 'icon' => 'book-open', 'sort_order' => 60, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $praktikum->id, 'name' => 'Registrasi Praktikum'],
-            ['route_name' => 'admin.practicum.index', 'icon' => 'list', 'sort_order' => 0, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'admin', 'parent_id' => $praktikum->id, 'name' => 'Laporan Praktikum'],
-            ['route_name' => 'admin.practicum.reports', 'icon' => 'file', 'sort_order' => 1, 'is_active' => true]
+            ['context' => 'admin', 'parent_id' => $bookingParent->id, 'name' => 'Jadwal Ruangan'],
+            ['route_name' => 'admin.calendar.index', 'icon' => 'clock', 'sort_order' => 1, 'is_active' => true]
         );
 
         // ──────────────────────────────────────────────
@@ -121,7 +88,7 @@ class MenuSeeder extends Seeder
         // ──────────────────────────────────────────────
 
         $userDashboard = Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => null, 'name' => 'User Dashboard'],
+            ['context' => 'user', 'parent_id' => null, 'name' => 'Dashboard'],
             ['route_name' => 'home', 'icon' => 'home', 'sort_order' => 0, 'is_active' => true]
         );
 
@@ -141,36 +108,16 @@ class MenuSeeder extends Seeder
             ['route_name' => 'bookings.index', 'icon' => 'list', 'sort_order' => 1, 'is_active' => true]
         );
 
-        // --- Layanan Pengujian (User) ---
-        $userPengujian = Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => null, 'name' => 'Pengujian'],
-            ['route_name' => null, 'icon' => 'activity', 'sort_order' => 20, 'is_active' => true]
+        // --- Jadwal & Kalender ---
+        $userCalendar = Menu::updateOrCreate(
+            ['context' => 'user', 'parent_id' => null, 'name' => 'Jadwal & Kalender'],
+            ['route_name' => 'calendar.index', 'icon' => 'clock', 'sort_order' => 20, 'is_active' => true]
         );
 
-        Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => $userPengujian->id, 'name' => 'Ajukan Pengujian'],
-            ['route_name' => 'test-requests.create', 'icon' => 'plus-circle', 'sort_order' => 0, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => $userPengujian->id, 'name' => 'Tracking Pengujian'],
-            ['route_name' => 'test-requests.index', 'icon' => 'search', 'sort_order' => 1, 'is_active' => true]
-        );
-
-        // --- Layanan Praktikum (User) ---
-        $userPraktikum = Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => null, 'name' => 'Praktikum'],
-            ['route_name' => null, 'icon' => 'book-open', 'sort_order' => 30, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => $userPraktikum->id, 'name' => 'Daftar Praktikum'],
-            ['route_name' => 'practicum.create', 'icon' => 'plus-circle', 'sort_order' => 0, 'is_active' => true]
-        );
-
-        Menu::updateOrCreate(
-            ['context' => 'user', 'parent_id' => $userPraktikum->id, 'name' => 'Riwayat Praktikum'],
-            ['route_name' => 'practicum.index', 'icon' => 'list', 'sort_order' => 1, 'is_active' => true]
+        // --- Notifikasi ---
+        $userNotif = Menu::updateOrCreate(
+            ['context' => 'user', 'parent_id' => null, 'name' => 'Notifikasi'],
+            ['route_name' => 'notifications.index', 'icon' => 'bell', 'sort_order' => 30, 'is_active' => true]
         );
 
         // ──────────────────────────────────────────────
@@ -180,70 +127,28 @@ class MenuSeeder extends Seeder
         $adminMenuIds = Menu::where('context', 'admin')->pluck('id')->all();
         $userMenuIds = Menu::where('context', 'user')->pluck('id')->all();
 
-        // 1. Super Admin: Semua menu admin
-        $adminRole?->menus()->sync($adminMenuIds);
+        // 1. Pengelola Sistem (Super Admin): Semua admin menus
+        $pengelolaSistem = Role::where('slug', 'pengelola_sistem')->first();
+        $pengelolaSistem?->menus()->sync($adminMenuIds);
 
-        // 2. Admin Fakultas: Dashboard, Users (Profile), Master Data (Ruangan), Peminjaman
-        $adminFakultasMenus = Menu::whereIn('name', [
-            'Admin Dashboard',
-            'Manage Users',
-            'Profile',
-            'Master Data',
-            'Manajemen Ruangan',
-            'Peminjaman',
-            'Approval Peminjaman'
-        ])->pluck('id')->all();
-        Role::where('slug', 'admin-fakultas')->first()?->menus()->sync($adminFakultasMenus);
+        // 2. Pengelola Gedung: Dashboard, Profile, Master Data (Ruangan, Fasilitas), Peminjaman (Approval, Jadwal)
+        $pengelolaGedungMenus = Menu::where('context', 'admin')
+            ->whereIn('name', [
+                'Dashboard',
+                'Kelola Pengguna',
+                'Profile',
+                'Master Data',
+                'Manajemen Ruangan',
+                'Manajemen Fasilitas',
+                'Peminjaman',
+                'Approval Peminjaman',
+                'Jadwal Ruangan',
+            ])->pluck('id')->all();
+        $pengelolaGedung = Role::where('slug', 'pengelola_gedung')->first();
+        $pengelolaGedung?->menus()->sync($pengelolaGedungMenus);
 
-        // 3. Admin Lab: Dashboard, Profile, Master (Ruang, Alat, Param), Pengujian, Praktikum
-        $adminLabMenus = Menu::whereIn('name', [
-            'Admin Dashboard',
-            'Manage Users',
-            'Profile',
-            'Master Data',
-            'Manajemen Ruangan',
-            'Manajemen Alat',
-            'Parameter Pengujian',
-            'Layanan Pengujian',
-            'Permohonan Pengujian',
-            'Verifikasi Pembayaran',
-            'Layanan Praktikum',
-            'Registrasi Praktikum',
-            'Laporan Praktikum'
-        ])->pluck('id')->all();
-        Role::where('slug', 'admin-lab')->first()?->menus()->sync($adminLabMenus);
-
-        // 4. Penguji & Reviewer: Dashboard, Profile, Pengujian (tanpa Verifikasi Pembayaran)
-        $pengujiMenus = Menu::whereIn('name', [
-            'Admin Dashboard',
-            'Manage Users',
-            'Profile',
-            'Layanan Pengujian',
-            'Permohonan Pengujian'
-        ])->pluck('id')->all();
-        Role::where('slug', 'penguji')->first()?->menus()->sync($pengujiMenus);
-        Role::where('slug', 'reviewer')->first()?->menus()->sync($pengujiMenus);
-
-        // 5. Dosen & Mahasiswa: User Dashboard, Peminjaman Ruang
-        $dosenMhsMenus = Menu::whereIn('name', [
-            'User Dashboard',
-            'Peminjaman Ruangan',
-            'Ajukan Peminjaman',
-            'Riwayat Peminjaman'
-        ])->pluck('id')->all();
-        Role::where('slug', 'dosen')->first()?->menus()->sync($dosenMhsMenus);
-        Role::where('slug', 'mahasiswa')->first()?->menus()->sync($dosenMhsMenus);
-
-        // 6. Pemohon: User Dashboard, Pengujian, Praktikum
-        $pemohonMenus = Menu::whereIn('name', [
-            'User Dashboard',
-            'Pengujian',
-            'Ajukan Pengujian',
-            'Tracking Pengujian',
-            'Praktikum',
-            'Daftar Praktikum',
-            'Riwayat Praktikum'
-        ])->pluck('id')->all();
-        Role::where('slug', 'pemohon')->first()?->menus()->sync($pemohonMenus);
+        // 3. Peminjam: All user menus
+        $peminjam = Role::where('slug', 'peminjam')->first();
+        $peminjam?->menus()->sync($userMenuIds);
     }
 }

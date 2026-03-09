@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppNotification;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 
@@ -10,7 +11,7 @@ class BookingApprovalController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::with(['user', 'room']);
+        $query = Booking::with(['user', 'room', 'equipment']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -24,7 +25,11 @@ class BookingApprovalController extends Controller
             });
         }
 
-        $bookings = $query->orderByRaw("FIELD(status, 'pending', 'approved', 'rejected', 'finished')")
+        if ($request->filled('building')) {
+            $query->whereHas('room', fn($q) => $q->where('building', $request->building));
+        }
+
+        $bookings = $query->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'rejected' THEN 2 WHEN 'finished' THEN 3 ELSE 4 END")
             ->orderByDesc('created_at')
             ->paginate(15)
             ->appends(request()->query());
@@ -41,7 +46,7 @@ class BookingApprovalController extends Controller
 
     public function show(Booking $booking)
     {
-        $booking->load(['user.role', 'room', 'approver']);
+        $booking->load(['user.role', 'room', 'approver', 'equipment']);
 
         return view('admin.bookings.show', compact('booking'));
     }
@@ -51,13 +56,6 @@ class BookingApprovalController extends Controller
         if ($booking->status !== 'pending') {
             return redirect()->route('admin.bookings.show', $booking)
                 ->with('error', 'Hanya peminjaman dengan status "Menunggu" yang dapat disetujui.');
-        }
-
-        // Scope validation: Admin Fakultas can only approve their own faculty's rooms
-        if (auth()->user()->role?->slug === 'admin-fakultas') {
-            if ($booking->room->scope !== 'fakultas-teknik') {
-                abort(403, 'Anda tidak memiliki hak akses untuk menyetujui peminjaman ruangan tingkat Universitas/Lab Terpadu.');
-            }
         }
 
         // Check for conflicts
@@ -84,6 +82,16 @@ class BookingApprovalController extends Controller
             'approved_at' => now(),
         ]);
 
+        // Send notification to user
+        AppNotification::notify(
+            $booking->user_id,
+            'Peminjaman Disetujui ✅',
+            'Peminjaman ruangan "' . $booking->room->name . '" pada ' . $booking->booking_date->format('d M Y') . ' (' . substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5) . ') telah disetujui.',
+            'success',
+            'check-circle',
+            ['booking_id' => $booking->id]
+        );
+
         return redirect()->route('admin.bookings.show', $booking)
             ->with('success', 'Peminjaman berhasil disetujui.');
     }
@@ -105,6 +113,16 @@ class BookingApprovalController extends Controller
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+
+        // Send notification to user
+        AppNotification::notify(
+            $booking->user_id,
+            'Peminjaman Ditolak ❌',
+            'Peminjaman ruangan "' . $booking->room->name . '" pada ' . $booking->booking_date->format('d M Y') . ' ditolak. Alasan: ' . $request->rejection_reason,
+            'danger',
+            'x-circle',
+            ['booking_id' => $booking->id]
+        );
 
         return redirect()->route('admin.bookings.show', $booking)
             ->with('success', 'Peminjaman berhasil ditolak.');

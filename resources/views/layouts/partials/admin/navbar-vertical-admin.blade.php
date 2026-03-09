@@ -1,6 +1,6 @@
 <!-- Admin Sidebar -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-navy-500 transform transition-transform duration-300 lg:translate-x-0 shadow-xl lg:shadow-none"
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 transform transition-transform duration-300 lg:translate-x-0 shadow-xl lg:shadow-none"
     :class="mobileMenu ? 'translate-x-0' : '-translate-x-full'" @click.outside="mobileMenu = false">
 
     <!-- Brand -->
@@ -24,7 +24,7 @@
                     </svg>
                 </div>
                 <input type="text" x-model="searchQuery" placeholder="Cari menu..."
-                    class="w-full bg-navy-600/50 border border-navy-400/30 text-white text-sm rounded-lg focus:ring-gold-400 focus:border-gold-400 block pl-9 p-2 placeholder-navy-200">
+                    class="w-full bg-navy-800/50 border border-navy-400/30 text-white text-sm rounded-lg focus:ring-gold-400 focus:border-gold-400 block pl-9 p-2 placeholder-navy-200">
             </div>
         </div>
 

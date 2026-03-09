@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Booking extends Model
 {
@@ -18,6 +19,9 @@ class Booking extends Model
         'end_time',
         'purpose',
         'notes',
+        'participant_count',
+        'contact_phone',
+        'permit_file',
         'status',
         'approved_by',
         'rejection_reason',
@@ -27,6 +31,7 @@ class Booking extends Model
     protected $casts = [
         'booking_date' => 'date',
         'approved_at' => 'datetime',
+        'participant_count' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -44,6 +49,13 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function equipment(): BelongsToMany
+    {
+        return $this->belongsToMany(Equipment::class, 'booking_equipment')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
@@ -54,6 +66,12 @@ class Booking extends Model
         return $query->where('status', 'approved');
     }
 
+    public function scopeUpcoming($query)
+    {
+        return $query->where('booking_date', '>=', now()->toDateString())
+            ->whereIn('status', ['pending', 'approved']);
+    }
+
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->status) {
@@ -61,6 +79,7 @@ class Booking extends Model
             'approved' => 'success',
             'rejected' => 'danger',
             'finished' => 'info',
+            'cancelled' => 'secondary',
             default => 'secondary',
         };
     }
@@ -72,6 +91,7 @@ class Booking extends Model
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
             'finished' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
             default => $this->status,
         };
     }

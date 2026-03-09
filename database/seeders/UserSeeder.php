@@ -14,42 +14,32 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'email' => 'admin@admin.com',
-                'role' => 'admin',
+                'role' => 'pengelola_sistem',
             ],
             [
-                'name' => 'Admin Fakultas Teknik',
-                'email' => 'admin.teknik@upr.ac.id',
-                'role' => 'admin-fakultas',
+                'name' => 'Pengelola Gedung Teknik',
+                'email' => 'pengelola.teknik@upr.ac.id',
+                'role' => 'pengelola_gedung',
             ],
             [
                 'name' => 'Dr. Budi Santoso',
                 'email' => 'budi.santoso@upr.ac.id',
-                'role' => 'dosen',
+                'role' => 'peminjam',
             ],
             [
                 'name' => 'Andi Mahasiswa',
                 'email' => 'andi@student.upr.ac.id',
-                'role' => 'mahasiswa',
+                'role' => 'peminjam',
             ],
             [
-                'name' => 'Admin Lab Terpadu',
-                'email' => 'admin-lab@univ.edu',
-                'role' => 'admin-lab',
+                'name' => 'BEM Universitas',
+                'email' => 'bem@student.upr.ac.id',
+                'role' => 'peminjam',
             ],
             [
-                'name' => 'Analis Lab',
-                'email' => 'penguji@univ.edu',
-                'role' => 'penguji',
-            ],
-            [
-                'name' => 'Reviewer Lab',
-                'email' => 'reviewer@univ.edu',
-                'role' => 'reviewer',
-            ],
-            [
-                'name' => 'Pemohon Umum',
-                'email' => 'pemohon@univ.edu',
-                'role' => 'pemohon',
+                'name' => 'Tamu Eksternal',
+                'email' => 'tamu@external.com',
+                'role' => 'peminjam',
             ],
         ];
 

@@ -11,15 +11,16 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('code')->unique();
-            $table->enum('scope', ['universitas', 'fakultas']);
+            $table->string('scope')->default('universitas'); // universitas, fakultas
             $table->string('faculty')->nullable();
-            $table->integer('capacity');
+            $table->integer('capacity')->default(0);
             $table->text('facilities')->nullable();
-            $table->string('location')->nullable();
+            $table->string('building')->nullable();      // Gedung
+            $table->string('floor')->nullable();          // Lantai
+            $table->string('location')->nullable();       // Lokasi lengkap
+            $table->enum('status', ['tersedia', 'dipakai', 'maintenance'])->default('tersedia');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->index(['scope', 'faculty']);
         });
     }
 

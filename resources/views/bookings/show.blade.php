@@ -92,12 +92,60 @@
                                 {{ $booking->purpose }}</p>
                         </div>
 
+                        <!-- Additional Info -->
+                        @if($booking->participant_count || $booking->contact_phone)
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @if($booking->participant_count)
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Jumlah Peserta</label>
+                                <p class="text-slate-700 font-medium">{{ $booking->participant_count }} orang</p>
+                            </div>
+                            @endif
+                            @if($booking->contact_phone)
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">No. HP</label>
+                                <p class="text-slate-700 font-medium">{{ $booking->contact_phone }}</p>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+
+                        <!-- Equipment -->
+                        @if($booking->equipment->isNotEmpty())
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Fasilitas Tambahan</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                @foreach($booking->equipment as $eq)
+                                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div class="w-8 h-8 rounded-lg bg-cyan-100 border border-cyan-200 flex items-center justify-center">
+                                        <i data-feather="tool" class="w-4 h-4 text-cyan-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-700">{{ $eq->name }}</p>
+                                        <p class="text-xs text-slate-400">Jumlah: {{ $eq->pivot->quantity }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+
                         @if($booking->notes)
                             <div class="space-y-1">
                                 <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Catatan</label>
                                 <p class="text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">
                                     {{ $booking->notes }}</p>
                             </div>
+                        @endif
+
+                        <!-- Permit File -->
+                        @if($booking->permit_file)
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Surat Izin</label>
+                            <a href="{{ asset('storage/' . $booking->permit_file) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-cyan-600 hover:bg-cyan-50 hover:border-cyan-200 transition-colors">
+                                <i data-feather="file-text" class="w-4 h-4 mr-2"></i> Lihat Surat Izin
+                            </a>
+                        </div>
                         @endif
 
                         @if($booking->rejection_reason)

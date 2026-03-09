@@ -17,7 +17,8 @@ class RoomController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('code', 'like', '%' . $request->search . '%')
-                    ->orWhere('location', 'like', '%' . $request->search . '%');
+                    ->orWhere('location', 'like', '%' . $request->search . '%')
+                    ->orWhere('building', 'like', '%' . $request->search . '%');
             });
         }
 
@@ -25,30 +26,35 @@ class RoomController extends Controller
             $query->where('scope', $request->scope);
         }
 
-        if ($request->filled('faculty')) {
-            $query->where('faculty', $request->faculty);
+        if ($request->filled('building')) {
+            $query->where('building', $request->building);
         }
 
-        $rooms = $query->orderBy('name')->paginate(10)->withQueryString();
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        $faculties = Room::whereNotNull('faculty')
-            ->distinct()
-            ->pluck('faculty')
-            ->sort()
-            ->values();
+        $rooms = $query->orderBy('building')->orderBy('name')->paginate(10)->withQueryString();
 
-        return view('admin.rooms.index', compact('rooms', 'faculties'));
+        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
+        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
+
+        $stats = [
+            'total' => Room::count(),
+            'tersedia' => Room::where('status', 'tersedia')->count(),
+            'dipakai' => Room::where('status', 'dipakai')->count(),
+            'maintenance' => Room::where('status', 'maintenance')->count(),
+        ];
+
+        return view('admin.rooms.index', compact('rooms', 'buildings', 'faculties', 'stats'));
     }
 
     public function create()
     {
-        $faculties = Room::whereNotNull('faculty')
-            ->distinct()
-            ->pluck('faculty')
-            ->sort()
-            ->values();
+        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
+        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
 
-        return view('admin.rooms.create', compact('faculties'));
+        return view('admin.rooms.create', compact('buildings', 'faculties'));
     }
 
     public function store(Request $request)
@@ -60,7 +66,10 @@ class RoomController extends Controller
             'faculty' => 'nullable|required_if:scope,fakultas|string|max:255',
             'capacity' => 'required|integer|min:1',
             'facilities' => 'nullable|string',
+            'building' => 'nullable|string|max:255',
+            'floor' => 'nullable|string|max:10',
             'location' => 'nullable|string|max:255',
+            'status' => 'required|in:tersedia,dipakai,maintenance',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
@@ -92,13 +101,10 @@ class RoomController extends Controller
 
     public function edit(Room $room)
     {
-        $faculties = Room::whereNotNull('faculty')
-            ->distinct()
-            ->pluck('faculty')
-            ->sort()
-            ->values();
+        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
+        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
 
-        return view('admin.rooms.edit', compact('room', 'faculties'));
+        return view('admin.rooms.edit', compact('room', 'buildings', 'faculties'));
     }
 
     public function update(Request $request, Room $room)
@@ -110,7 +116,10 @@ class RoomController extends Controller
             'faculty' => 'nullable|required_if:scope,fakultas|string|max:255',
             'capacity' => 'required|integer|min:1',
             'facilities' => 'nullable|string',
+            'building' => 'nullable|string|max:255',
+            'floor' => 'nullable|string|max:10',
             'location' => 'nullable|string|max:255',
+            'status' => 'required|in:tersedia,dipakai,maintenance',
         ]);
 
         $validated['is_active'] = $request->has('is_active');

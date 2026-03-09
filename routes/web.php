@@ -18,36 +18,30 @@ Route::get('/', function () {
 Auth::routes();
 
 // ──────────────────────────────────────────────────────────
-//  USER ROUTES  (dosen, mahasiswa, pemohon)
+//  PEMINJAM ROUTES  (peminjam — dosen, mahasiswa, ormawa, tamu)
 // ──────────────────────────────────────────────────────────
-Route::middleware(['auth', 'user-role:dosen,mahasiswa,pemohon'])->group(function () {
+Route::middleware(['auth', 'user-role:peminjam'])->group(function () {
     Route::get('/home', [HomeController::class, 'userHome'])->name('home');
 
-    // ── Peminjaman Ruang ──────────────────────────────
+    // ── Peminjaman Ruangan ──────────────────────────────
     Route::get('/bookings', [App\Http\Controllers\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/create', [App\Http\Controllers\BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [App\Http\Controllers\BookingController::class, 'show'])->name('bookings.show');
 
-    // ── Layanan Pengujian ─────────────────────────────
-    Route::get('/test-requests', [App\Http\Controllers\TestRequestController::class, 'index'])->name('test-requests.index');
-    Route::get('/test-requests/create', [App\Http\Controllers\TestRequestController::class, 'create'])->name('test-requests.create');
-    Route::post('/test-requests', [App\Http\Controllers\TestRequestController::class, 'store'])->name('test-requests.store');
-    Route::get('/test-requests/{testRequest}', [App\Http\Controllers\TestRequestController::class, 'show'])->name('test-requests.show');
-    Route::post('/test-requests/{testRequest}/payment', [App\Http\Controllers\TestRequestController::class, 'uploadPayment'])->name('test-requests.upload-payment')->middleware('throttle:5,1');
+    // ── Kalender (User) ─────────────────────────────────
+    Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
 
-    // ── Layanan Praktikum ─────────────────────────────
-    Route::get('/practicum', [App\Http\Controllers\PracticumController::class, 'index'])->name('practicum.index');
-    Route::get('/practicum/create', [App\Http\Controllers\PracticumController::class, 'create'])->name('practicum.create');
-    Route::post('/practicum', [App\Http\Controllers\PracticumController::class, 'store'])->name('practicum.store');
-    Route::get('/practicum/{practicum}', [App\Http\Controllers\PracticumController::class, 'show'])->name('practicum.show');
-    Route::post('/practicum/{practicum}/report', [App\Http\Controllers\PracticumController::class, 'submitReport'])->name('practicum.submit-report')->middleware('throttle:5,1');
+    // ── Notifikasi ──────────────────────────────────────
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
 
 // ──────────────────────────────────────────────────────────
-//  ADMIN ROUTES  (admin, admin-fakultas, admin-lab)
+//  ADMIN ROUTES  (pengelola_sistem, pengelola_gedung)
 // ──────────────────────────────────────────────────────────
-Route::middleware(['auth', 'user-role:admin,admin-fakultas,admin-lab,penguji,reviewer'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'user-role:pengelola_sistem,pengelola_gedung'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/home', [HomeController::class, 'adminHome'])->name('home');
 
     // ── Role Management ───────────────────────────────
@@ -68,35 +62,28 @@ Route::middleware(['auth', 'user-role:admin,admin-fakultas,admin-lab,penguji,rev
     Route::resource('users', App\Http\Controllers\Admin\UserController::class)->except(['show']);
     Route::patch('/users/{user}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
 
+    // ── Equipment / Facility Management ───────────────
+    Route::resource('equipment', App\Http\Controllers\Admin\EquipmentController::class);
+
     // ── Booking Approval ──────────────────────────────
     Route::get('/bookings', [App\Http\Controllers\Admin\BookingApprovalController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}', [App\Http\Controllers\Admin\BookingApprovalController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/approve', [App\Http\Controllers\Admin\BookingApprovalController::class, 'approve'])->name('bookings.approve');
     Route::patch('/bookings/{booking}/reject', [App\Http\Controllers\Admin\BookingApprovalController::class, 'reject'])->name('bookings.reject');
 
-    // ── Equipment Management ──────────────────────────
-    Route::resource('equipment', App\Http\Controllers\Admin\EquipmentController::class);
+    // ── Kalender (Admin) ──────────────────────────────
+    Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
 
-    // ── Test Parameter Management ─────────────────────
-    Route::resource('test-parameters', App\Http\Controllers\Admin\TestParameterController::class)->except(['show']);
-
-    // ── Pengujian (Test Request Admin) ────────────────
-    Route::get('/test-requests', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'index'])->name('test-requests.index');
-    Route::get('/test-requests/payments', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'payments'])->name('test-requests.payments');
-    Route::get('/test-requests/{testRequest}', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'show'])->name('test-requests.show');
-    Route::patch('/test-requests/{testRequest}/verify-payment', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'verifyPayment'])->name('test-requests.verify-payment');
-    Route::patch('/test-requests/{testRequest}/assign', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'assign'])->name('test-requests.assign');
-    Route::patch('/test-requests/{testRequest}/approve-report', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'approveReport'])->name('test-requests.approve-report');
-    Route::patch('/test-requests/{testRequest}/complete', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'complete'])->name('test-requests.complete');
-    Route::post('/test-requests/{testRequest}/upload-report', [App\Http\Controllers\Admin\TestRequestAdminController::class, 'uploadReport'])->name('test-requests.upload-report')->middleware('throttle:5,1');
-
-    // ── Praktikum Admin ───────────────────────────────
-    Route::get('/practicum', [App\Http\Controllers\Admin\PracticumAdminController::class, 'index'])->name('practicum.index');
-    Route::get('/practicum/reports', [App\Http\Controllers\Admin\PracticumAdminController::class, 'reports'])->name('practicum.reports');
-    Route::get('/practicum/export', [App\Http\Controllers\Admin\PracticumAdminController::class, 'export'])->name('practicum.export');
-    Route::get('/practicum/{practicum}', [App\Http\Controllers\Admin\PracticumAdminController::class, 'show'])->name('practicum.show');
-    Route::patch('/practicum/{practicum}/status', [App\Http\Controllers\Admin\PracticumAdminController::class, 'updateStatus'])->name('practicum.update-status');
+    // ── Notifikasi (Admin) ────────────────────────────
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 
     // ── Menu Search ───────────────────────────────────
     Route::get('/menu-search', [MenuController::class, 'search'])->name('menus.search');
+});
+
+// ── API: Calendar Events (shared) ─────────────────────
+Route::middleware(['auth'])->group(function () {
+    Route::get('/api/calendar-events', [App\Http\Controllers\CalendarController::class, 'events'])->name('api.calendar-events');
+    Route::get('/api/room-availability', [App\Http\Controllers\CalendarController::class, 'checkAvailability'])->name('api.room-availability');
+    Route::get('/api/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('api.notifications.unread-count');
 });

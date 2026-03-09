@@ -10,14 +10,21 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            ['name' => 'Super Admin Univ', 'slug' => 'admin', 'description' => 'Super Administrator tingkat Universitas — akses penuh'],
-            ['name' => 'Admin Fakultas Teknik', 'slug' => 'admin-fakultas', 'description' => 'Administrator Fakultas Teknik — mengelola ruangan & peminjaman fakultas'],
-            ['name' => 'Dosen', 'slug' => 'dosen', 'description' => 'Dosen — dapat mengajukan peminjaman ruangan'],
-            ['name' => 'Mahasiswa', 'slug' => 'mahasiswa', 'description' => 'Mahasiswa — dapat mengajukan peminjaman ruangan'],
-            ['name' => 'Admin Lab Terpadu', 'slug' => 'admin-lab', 'description' => 'Administrator Lab Terpadu — mengelola layanan pengujian, praktikum & peminjaman lab'],
-            ['name' => 'Penguji', 'slug' => 'penguji', 'description' => 'Analis Lab / Penguji — melakukan pengujian sampel'],
-            ['name' => 'Reviewer', 'slug' => 'reviewer', 'description' => 'Reviewer — melakukan blind review hasil pengujian'],
-            ['name' => 'Pemohon', 'slug' => 'pemohon', 'description' => 'Pemohon — mendaftar layanan pengujian dan praktikum'],
+            [
+                'name' => 'Pengelola Sistem',
+                'slug' => 'pengelola_sistem',
+                'description' => 'Super Administrator — akses penuh ke seluruh sistem',
+            ],
+            [
+                'name' => 'Pengelola Gedung',
+                'slug' => 'pengelola_gedung',
+                'description' => 'Pengelola Gedung/Fakultas/Unit — mengelola ruangan dan approval peminjaman',
+            ],
+            [
+                'name' => 'Peminjam',
+                'slug' => 'peminjam',
+                'description' => 'Peminjam (Dosen/Mahasiswa/Ormawa/Tamu/Eksternal) — mengajukan dan melacak peminjaman ruangan',
+            ],
         ];
 
         foreach ($roles as $role) {
