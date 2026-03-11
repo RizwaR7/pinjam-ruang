@@ -96,7 +96,8 @@
                     <div class="grid grid-cols-7 border-b border-slate-100">
                         @foreach(['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $day)
                             <div class="px-2 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                {{ $day }}</div>
+                                {{ $day }}
+                            </div>
                         @endforeach
                     </div>
 
@@ -166,8 +167,16 @@
                 const dayEvents = events.filter(e => e.date === dateStr);
                 const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
 
-                html += `<div class="border-b border-r border-slate-50 p-2 min-h-[80px] cursor-pointer hover:bg-cyan-50/30 transition-colors ${isToday ? 'bg-cyan-50/50' : ''}" onclick="showDayEvents('${dateStr}')">`;
-                html += `<span class="text-xs font-bold ${isToday ? 'bg-cyan-600 text-white px-1.5 py-0.5 rounded-full' : 'text-slate-600'}">${d}</span>`;
+                const hasEvents = dayEvents.length > 0;
+
+                html += `<div class="border-b border-r border-slate-50 p-2 min-h-[80px] cursor-pointer transition-colors
+                ${isToday ? 'bg-cyan-50/50' : ''}
+                ${hasEvents ? 'bg-amber-50 hover:bg-amber-100' : 'hover:bg-cyan-50/30'}"
+                onclick="showDayEvents('${dateStr}')">`; html += `<span class="text-xs font-bold ${isToday ? 'bg-cyan-600 text-white px-1.5 py-0.5 rounded-full' : 'text-slate-600'}">${d}</span>`;
+
+                if (dayEvents.length > 0) {
+                    html += `<div class="w-1.5 h-1.5 bg-red-500 rounded-full mt-1"></div>`;
+                }
                 dayEvents.slice(0, 3).forEach(ev => {
                     const color = ev.status === 'approved' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200';
                     html += `<div class="mt-1 px-1.5 py-0.5 text-[10px] font-medium rounded border ${color} truncate">${ev.start_time} ${ev.room_code || ev.room}</div>`;
@@ -195,23 +204,30 @@
                 list.innerHTML = dayEvents.map(ev => {
                     const statusColor = ev.status === 'approved' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200';
                     return `<div class="px-6 py-3 flex items-center justify-between gap-4">
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-slate-800">${ev.room}</p>
-                        <p class="text-xs text-slate-500 truncate">${ev.title} — ${ev.user}</p>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">${ev.start_time} - ${ev.end_time}</span>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusColor}">${ev.status_label}</span>
-                    </div>
-                </div>`;
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-slate-800">${ev.room} (${ev.room_code})</p>
+                                        <p class="text-xs text-slate-400">${ev.building}</p>
+                                        <p class="text-xs text-slate-500 truncate">${ev.title} — ${ev.user}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span class="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">${ev.start_time} - ${ev.end_time}</span>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusColor}">${ev.status_label}</span>
+                                    </div>
+                                </div>`;
                 }).join('');
             }
             panel.classList.remove('hidden');
         }
 
-        function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); loadEvents(); }
-        function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); loadEvents(); }
+        window.prevMonth = function () {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            loadEvents();
+        }
 
+        window.nextMonth = function () {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            loadEvents();
+        }
         function checkAvailability() {
             const roomId = document.getElementById('avail-room').value;
             const date = document.getElementById('avail-date').value;

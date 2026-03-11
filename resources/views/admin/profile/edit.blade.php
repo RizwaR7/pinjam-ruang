@@ -23,7 +23,7 @@
         @endif
 
         <div class="bg-white/80 backdrop-blur-xl border border-white rounded-3xl shadow-xl overflow-hidden">
-            <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data"
+            <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" hx-boost="false">
                 class="divide-y divide-slate-100">
                 @csrf
                 @method('PUT')
@@ -37,11 +37,11 @@
                         <div
                             class="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 flex items-center justify-center">
                             @if ($user->avatar)
-                                <img src="{{ Storage::url($user->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                <img src="{{ Storage::url($user->avatar) }}?v={{ time() }}" alt="Avatar" class="w-full h-full object-cover">
                             @else
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=0D8ABC&color=fff"
-                                        alt="Avatar" class="w-full h-full object-cover">
-                                @endif
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=0D8ABC&color=fff"
+                                    alt="Avatar" class="w-full h-full object-cover">
+                            @endif
                         </div>
                         <!-- Upload overlay -->
                         <label for="avatar_upload"
@@ -49,8 +49,8 @@
                             <i data-feather="camera" class="w-6 h-6 mb-1"></i>
                             <span class="text-[10px] font-medium uppercase tracking-wider">Ubah Foto</span>
                         </label>
-                        <input type="file" id="avatar_upload" name="avatar" class="hidden"
-                            accept="image/jpeg, image/png, image/webp" onchange="previewImage(event)">
+                        <input type="file" name="avatar" class="border p-2">
+                        accept="image/jpeg, image/png, image/webp" onchange="previewImage(event)">
                     </div>
 
                     <div class="flex-1 space-y-4 z-10 w-full">
