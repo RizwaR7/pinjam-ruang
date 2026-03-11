@@ -87,7 +87,15 @@
                                         <span class="font-semibold text-slate-800">{{ $booking->user->name }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4"><span class="font-medium text-slate-800">{{ $booking->room->name }}</span><span class="block text-xs text-slate-400 font-mono">{{ $booking->room->code }}</span></td>
+                                <td class="px-6 py-4">
+                                    @if($booking->room)
+                                        <span class="font-medium text-slate-800">{{ $booking->room->name }}</span>
+                                        <span class="block text-xs text-slate-400 font-mono">{{ $booking->room->code }}</span>
+                                    @else
+                                        <span class="font-medium text-slate-800">Alat/Fasilitas</span>
+                                        <span class="block text-xs text-slate-400 font-mono">Tanpa Ruangan</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 font-medium text-slate-700">{{ $booking->booking_date->format('d M Y') }}</td>
                                 <td class="px-6 py-4 text-slate-600 font-mono text-xs">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
                                 <td class="px-6 py-4 text-slate-500 truncate max-w-[180px]">{{ $booking->purpose }}</td>
@@ -121,9 +129,11 @@
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-navy-500 to-navy-700 text-white flex items-center justify-center font-bold text-xs shrink-0">{{ strtoupper(substr($booking->user->name, 0, 1)) }}</div>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-800">{{ $booking->user->name }}</p>
-                                    <p class="text-xs text-slate-400">{{ $booking->room->name }} · <span class="font-mono">{{ $booking->room->code }}</span></p>
-                                </div>
+                                    @if($booking->room)
+                                        <p class="text-xs text-slate-400">{{ $booking->room->name }} · <span class="font-mono">{{ $booking->room->code }}</span></p>
+                                    @else
+                                        <p class="text-xs text-slate-400">Peminjaman Fasilitas/Alat Luar</p>
+                                    @endif
                             </div>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200 shrink-0">{{ $booking->status_label }}</span>
                         </div>

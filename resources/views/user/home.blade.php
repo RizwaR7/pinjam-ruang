@@ -39,7 +39,7 @@
                     @forelse($upcomingBookings as $booking)
                         <a href="{{ route('bookings.show', $booking) }}" class="block px-6 py-4 hover:bg-slate-50/80 transition-colors">
                             <div class="flex items-center justify-between mb-1">
-                                <p class="font-semibold text-slate-800 text-sm">{{ $booking->room->name }}</p>
+                                <p class="font-semibold text-slate-800 text-sm">{{ $booking->room ? $booking->room->name : 'Fasilitas Saja' }}</p>
                                 @php $c = $booking->status === 'approved' ? 'emerald' : 'amber'; @endphp
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200">{{ $booking->status_label }}</span>
                             </div>

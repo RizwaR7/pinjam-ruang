@@ -1,18 +1,18 @@
 @if(!request()->header('HX-Request'))
     <!-- Global Preloader -->
     <div id="global-loader" x-data="{ show: true }" x-init="
-        setTimeout(() => {
-            // Validasi state document saat script ini berjalan
-            if (document.readyState === 'complete') {
-                show = false;
-            } else {
-                // Jika belum complete, tunggu event load browser
-                window.addEventListener('load', () => { setTimeout(() => show = false, 250); });
-                // Fallback timeout jaga-jaga apabila window.load gagal ter-trigger
-                setTimeout(() => { show = false; }, 3000);
-            }
-        }, 10);
-    " x-show="show" x-transition:leave="transition fade-out duration-700 ease-in-out"
+            setTimeout(() => {
+                // Validasi state document saat script ini berjalan
+                if (document.readyState === 'complete') {
+                    show = false;
+                } else {
+                    // Jika belum complete, tunggu event load browser
+                    window.addEventListener('load', () => { setTimeout(() => show = false, 250); });
+                    // Fallback timeout jaga-jaga apabila window.load gagal ter-trigger
+                    setTimeout(() => { show = false; }, 3000);
+                }
+            }, 10);
+        " x-show="show" x-transition:leave="transition fade-out duration-700 ease-in-out"
         class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 dark:bg-navy-950 backdrop-blur-xl">
 
         <div class="relative flex items-center justify-center">
@@ -38,7 +38,7 @@
 
         <!-- Text -->
         <div class="mt-8 text-center">
-            <h3 class="text-xl font-extrabold text-navy-900 dark:text-white tracking-tight animate-pulse">Si-Labu</h3>
+            <h3 class="text-xl font-extrabold text-navy-900 dark:text-white tracking-tight animate-pulse">SIPERA</h3>
             <p class="text-xs font-semibold text-slate-500 dark:text-navy-300 tracking-widest uppercase mt-1">Memuat
                 Sistem...</p>
         </div>

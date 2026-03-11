@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Equipment;
+use App\Models\FinePayment;
 use App\Models\Room;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -55,7 +57,7 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,id',
+            'room_id' => 'nullable|exists:rooms,id',
             'booking_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
@@ -69,22 +71,31 @@ class BookingController extends Controller
             'equipment.*.quantity' => 'integer|min:1',
         ]);
 
-        // Check for time conflicts
-        $conflict = Booking::where('room_id', $validated['room_id'])
-            ->where('booking_date', $validated['booking_date'])
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($q) use ($validated) {
-                $q->where(function ($q2) use ($validated) {
-                    $q2->where('start_time', '<', $validated['end_time'])
-                        ->where('end_time', '>', $validated['start_time']);
-                });
-            })
-            ->exists();
-
-        if ($conflict) {
+        if (empty($validated['room_id']) && empty($validated['equipment'])) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Ruangan sudah di-booking pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
+                ->withErrors(['equipment' => 'Jika tidak meminjam ruangan, Anda wajib memilih minimal satu alat/fasilitas.'])
+                ->with('error', 'Peminjaman tidak valid.');
+        }
+
+        // Check for time conflicts only if a room is selected
+        if (!empty($validated['room_id'])) {
+            $conflict = Booking::where('room_id', $validated['room_id'])
+                ->where('booking_date', $validated['booking_date'])
+                ->whereIn('status', ['pending', 'approved'])
+                ->where(function ($q) use ($validated) {
+                    $q->where(function ($q2) use ($validated) {
+                        $q2->where('start_time', '<', $validated['end_time'])
+                            ->where('end_time', '>', $validated['start_time']);
+                    });
+                })
+                ->exists();
+
+            if ($conflict) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Ruangan sudah di-booking pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
+            }
         }
 
         // Handle file upload
@@ -95,7 +106,7 @@ class BookingController extends Controller
 
         $booking = Booking::create([
             'user_id' => auth()->id(),
-            'room_id' => $validated['room_id'],
+            'room_id' => $validated['room_id'] ?: null,
             'booking_date' => $validated['booking_date'],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
@@ -127,8 +138,84 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load(['room', 'approver', 'equipment']);
+        $booking->load(['room', 'approver', 'equipment', 'finePayments']);
 
-        return view('bookings.show', compact('booking'));
+        // Get VA info for fine payment
+        $vaInfo = null;
+        if ($booking->fine_status === 'unpaid') {
+            $vaInfo = [
+                'bank' => Setting::get('va_bank_name', ''),
+                'number' => Setting::get('va_account_number', ''),
+                'holder' => Setting::get('va_account_holder', ''),
+            ];
+        }
+
+        return view('bookings.show', compact('booking', 'vaInfo'));
+    }
+
+    /**
+     * Borrower requests return of items/room.
+     */
+    public function requestReturn(Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'approved') {
+            return back()->with('error', 'Hanya peminjaman yang sudah disetujui yang dapat diajukan pengembalian.');
+        }
+
+        $booking->update([
+            'status' => 'return_requested',
+            'return_requested_at' => now(),
+        ]);
+
+        // Notify admins
+        $admins = \App\Models\User::whereHas('role', function ($q) {
+            $q->whereIn('slug', ['pengelola_sistem', 'pengelola_gedung']);
+        })->get();
+
+        foreach ($admins as $admin) {
+            \App\Models\AppNotification::notify(
+                $admin->id,
+                'Permintaan Pengembalian 📦',
+                'Peminjam ' . auth()->user()->name . ' mengajukan pengembalian.',
+                'info',
+                'package',
+                ['booking_id' => $booking->id]
+            );
+        }
+
+        return back()->with('success', 'Permintaan pengembalian berhasil diajukan. Menunggu konfirmasi admin.');
+    }
+
+    /**
+     * Borrower uploads fine payment proof.
+     */
+    public function uploadFinePayment(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($booking->fine_status !== 'unpaid') {
+            return back()->with('error', 'Tidak ada denda yang perlu dibayar.');
+        }
+
+        $request->validate([
+            'proof_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = $request->file('proof_file')->store('fine-payments', 'public');
+
+        FinePayment::create([
+            'booking_id' => $booking->id,
+            'amount' => $booking->fine_amount,
+            'proof_file' => $path,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.');
     }
 }

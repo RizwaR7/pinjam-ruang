@@ -3,40 +3,72 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Si-Labu — Sistem Informasi Laboratorium Terpadu</title>
-    <meta name="view-transition" content="same-origin" />
+    <title>{{ config('app.name', 'SIPERA') }} — Booking Ruangan Universitas</title>
     @vite(['resources/css/app.css'])
-    <!-- AlpineJS -->
+    
+    <!-- AlpineJS & Feather Icons -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- AlpineJS & Feather Icons -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Dark Mode Script -->
+    <script>
+        // Init logic before Alpine loads to prevent flicker
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <style>
-        /* View Transition Customization */
-        ::view-transition-old(root),
-        ::view-transition-new(root) { animation-duration: 0.3s; }
+        [x-cloak] { display: none !important; }
         .page-fade-out { opacity: 0; transition: opacity 0.25s ease-out; }
     </style>
 </head>
-<body class="bg-navy-950 text-white font-sans antialiased overflow-x-hidden">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans antialiased overflow-x-hidden min-h-screen flex flex-col transition-colors duration-300" 
+      x-data="{ 
+          darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+          toggleTheme() {
+              this.darkMode = !this.darkMode;
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+                  localStorage.setItem('theme', 'dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+                  localStorage.setItem('theme', 'light');
+              }
+          }
+      }">
 
     <!-- Navbar -->
-    <nav class="fixed top-0 inset-x-0 z-50 bg-navy-950/70 backdrop-blur-xl border-b border-white/5">
-        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-navy-500 to-navy-700 flex items-center justify-center shadow-lg shadow-navy-500/20 border border-gold-400/30">
-                    <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+    <nav class="fixed top-0 inset-x-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 transition-colors duration-300">
+                    <i data-feather="calendar" class="w-5 h-5"></i>
                 </div>
-                <span class="text-lg font-extrabold tracking-tight">Si-Labu</span>
+                <span class="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white transition-colors duration-300">SIPERA</span>
             </a>
-            <div class="flex items-center gap-3">
+            
+            <div class="flex items-center gap-4">
+                <!-- Theme Toggle Button -->
+                <button @click="toggleTheme()" class="p-2 mr-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Dark/Light Mode">
+                    <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <svg x-show="darkMode" x-cloak class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </button>
                 @auth
-                    <a href="{{ in_array(auth()->user()->role?->slug, ['admin', 'admin-fakultas']) ? route('admin.home') : route('home') }}"
-                       class="px-5 py-2 text-sm font-bold text-navy-900 bg-gold-500 rounded-xl hover:bg-gold-400 transition-all shadow-lg shadow-gold-500/20">
-                        Dashboard
+                    <a href="{{ in_array(auth()->user()->role?->slug, ['pengelola_sistem', 'pengelola_gedung']) ? route('admin.home') : route('home') }}"
+                       class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-md shadow-blue-500/20 flex items-center gap-2">
+                        Dashboard Saya
+                        <i data-feather="arrow-right" class="w-4 h-4"></i>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">Login</a>
+                    <a href="{{ route('login') }}" class="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hidden sm:block">Log in</a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="px-5 py-2 text-sm font-bold text-navy-900 bg-gold-500 rounded-xl hover:bg-gold-400 transition-all shadow-lg shadow-gold-500/20">
-                            Register
+                        <a href="{{ route('register') }}" class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-md shadow-blue-500/20">
+                            Daftar Peminjam
                         </a>
                     @endif
                 @endauth
@@ -44,107 +76,194 @@
         </div>
     </nav>
 
-    <!-- Hero -->
-    <section class="relative min-h-screen flex items-center justify-center pt-16">
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-r from-navy-500/20 via-navy-600/15 to-navy-700/20 rounded-full blur-[120px]"></div>
-            <div class="absolute bottom-0 left-0 w-[400px] h-[300px] bg-gold-500/10 rounded-full blur-[100px]"></div>
-            <div class="absolute top-20 right-0 w-[300px] h-[300px] bg-navy-400/10 rounded-full blur-[100px]"></div>
-            <!-- Floating Particles -->
-            <div class="absolute top-[15%] left-[10%] w-2 h-2 bg-gold-400/30 rounded-full animate-float-slow"></div>
-            <div class="absolute top-[40%] right-[15%] w-1.5 h-1.5 bg-navy-400/40 rounded-full animate-float-medium"></div>
-            <div class="absolute bottom-[30%] left-[20%] w-1 h-1 bg-gold-500/20 rounded-full animate-float-fast"></div>
-            <div class="absolute top-[60%] right-[25%] w-2.5 h-2.5 bg-navy-300/20 rounded-full animate-float-slow" style="animation-delay: 2s;"></div>
-            <div class="absolute top-[25%] right-[35%] w-1.5 h-1.5 bg-gold-400/25 rounded-full animate-float-medium" style="animation-delay: 1s;"></div>
-        </div>
-        <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Cpath d=%22M0 0h60v60H0z%22 fill=%22none%22 stroke=%22white%22 stroke-width=%220.5%22/%3E%3C/svg%3E');"></div>
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-300">
+        <!-- Background decoration -->
+        <div class="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-blue-50/50 dark:from-blue-900/20 to-white/0 dark:to-slate-900/0 pointer-events-none"></div>
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-20 -left-20 w-72 h-72 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-gold-500/20 text-sm text-gold-400 font-medium mb-8 backdrop-blur-sm">
-                <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
-                Sistem Informasi Lab Terpadu UPR
-            </div>
-            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6">
-                Sistem Informasi
-                <span class="bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 bg-clip-text text-transparent">Laboratorium</span>
-                Terpadu
+        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 text-sm text-blue-700 dark:text-blue-400 font-semibold mb-6">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                Sistem Peminjaman Ruangan Universitas
+            </span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6 text-slate-900 dark:text-white">
+                Temukan & Pesan Ruangan<br class="hidden md:block"/>
+                <span class="text-blue-600 dark:text-blue-400">Terbaik Untukmu</span>
             </h1>
-            <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                Platform digital untuk manajemen laboratorium UPR. Kelola praktikum, alat, pengujian, dan riset dalam satu tempat yang terintegrasi.
+            <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Platform digital resmi untuk mencari jadwal, ketersediaan alat, dan meminjam ruangan di lingkungan kampus dengan cepat dan transparan.
             </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                @auth
-                    <a href="{{ in_array(auth()->user()->role?->slug, ['admin', 'admin-fakultas']) ? route('admin.home') : route('home') }}"
-                       class="group px-8 py-3.5 text-sm font-bold text-navy-900 bg-gold-500 rounded-2xl hover:bg-gold-400 transition-all shadow-xl shadow-gold-500/25 transform hover:-translate-y-0.5 flex items-center gap-2">
-                        Masuk Dashboard
-                        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                    </a>
-                @else
-                    <a href="{{ route('register') }}"
-                       class="group px-8 py-3.5 text-sm font-bold text-navy-900 bg-gold-500 rounded-2xl hover:bg-gold-400 transition-all shadow-xl shadow-gold-500/25 transform hover:-translate-y-0.5 flex items-center gap-2">
-                        Mulai Sekarang
-                        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                    </a>
-                    <a href="{{ route('login') }}"
-                       class="px-8 py-3.5 text-sm font-semibold text-slate-300 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:text-white transition-all backdrop-blur-sm">
-                        Login
-                    </a>
-                @endauth
-            </div>
+
+            <!-- Search Bar -->
+            <form action="{{ route('welcome') }}" method="GET" class="max-w-3xl mx-auto bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-2 transition-colors duration-300">
+                <div class="flex-1 flex items-center px-4 py-2 border-r border-slate-100 dark:border-slate-700">
+                    <i data-feather="search" class="text-slate-400 w-5 h-5 mr-3"></i>
+                    <input type="text" name="building" value="{{ request('building') }}" placeholder="Cari nama gedung..." class="w-full bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 placeholder-slate-400 py-2 outline-none">
+                </div>
+                <div class="flex-1 flex items-center px-4 py-2 sm:border-r border-slate-100 dark:border-slate-700">
+                    <i data-feather="map-pin" class="text-slate-400 w-5 h-5 mr-3"></i>
+                    <select name="scope" class="w-full bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 outline-none appearance-none font-medium cursor-pointer py-2">
+                        <option value="" class="dark:bg-slate-800">Semua Lingkup</option>
+                        <option value="universitas" class="dark:bg-slate-800" {{ request('scope') === 'universitas' ? 'selected' : '' }}>Universitas</option>
+                        <option value="fakultas" class="dark:bg-slate-800" {{ request('scope') === 'fakultas' ? 'selected' : '' }}>Fakultas</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-xl transition-colors shrink-0">
+                    Cari Ruangan
+                </button>
+            </form>
         </div>
     </section>
 
-    <!-- Features -->
-    <section class="relative py-24">
-        <div class="max-w-6xl mx-auto px-6">    
-            <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">Layanan Utama</h2>
-                <p class="text-slate-400 max-w-xl mx-auto">Semua yang kamu butuhkan untuk kegiatan laboratorium kampus</p>
+    <!-- Marketplace / Catalog Section -->
+    <main class="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
+        
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white">
+                @if(request('building') || request('scope'))
+                    Hasil Pencarian Ruangan
+                @else
+                    Katalog Ruangan Terpopuler
+                @endif
+            </h2>
+            <span class="text-sm font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm">{{ $rooms->total() }} Ruangan ditemukan</span>
+        </div>
+
+        @if($rooms->isEmpty())
+            <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-12 text-center max-w-2xl mx-auto shadow-sm transition-colors duration-300">
+                <div class="w-20 h-20 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-feather="search" class="w-10 h-10 text-slate-300 dark:text-slate-500"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Tidak ada ruangan ditemukan</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-6">Ruangan dengan kriteria pencarian Anda tidak tersedia. Silakan coba mengubah filter gedung atau lingkup.</p>
+                <a href="{{ route('welcome') }}" class="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
+                    Reset Pencarian
+                </a>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach([
-                    ['icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'title' => 'Layanan Praktikum', 'desc' => 'Daftar dan kelola jadwal praktikum serta unduh modul panduan dengan mudah.', 'color' => 'gold'],
-                    ['icon' => 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z', 'title' => 'Layanan Pengujian', 'desc' => 'Ajukan uji sampel dengan alat laboratorium standar industri yang tersedia.', 'color' => 'success'],
-                    ['icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title' => 'Peminjaman Alat', 'desc' => 'Daftar alat lengkap dengan status ketersediaan untuk keperluan penelitian mahasiswa.', 'color' => 'navy'],
-                    ['icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', 'title' => 'Layanan Penelitian', 'desc' => 'Ajukan proposal riset, jadwalkan penggunaan lab, dan dokumentasikan hasil penelitian.', 'color' => 'info'],
-                ] as $feature)
-                    <div class="group relative rounded-2xl bg-white/[0.03] border border-white/[0.06] p-8 hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300 hover:shadow-lg hover:shadow-white/5 hover:-translate-y-1">
-                        <div class="w-12 h-12 rounded-2xl bg-{{ $feature['color'] }}-500/10 border border-{{ $feature['color'] }}-500/20 flex items-center justify-center text-{{ $feature['color'] }}-400 mb-5">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $feature['icon'] }}"></path></svg>
+        @else
+            <!-- Grid of Rooms -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                @foreach($rooms as $room)
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+                        
+                        <!-- Room Header (Like an image placeholder wrapper) -->
+                        <div class="h-32 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 p-6 flex flex-col justify-between relative overflow-hidden">
+                            <!-- Abstract decoration -->
+                            <div class="absolute -right-4 -top-8 w-24 h-24 bg-blue-100 dark:bg-blue-500/20 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 ease-out"></div>
+                            
+                            <div class="flex justify-between items-start relative z-10">
+                                <span class="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded-lg border 
+                                    {{ $room->scope === 'universitas' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50' : 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800/50' }}">
+                                    {{ $room->scope }}
+                                </span>
+                                
+                                @if($room->status === 'tersedia')
+                                    <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/50">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Tersedia
+                                    </span>
+                                @elseif($room->status === 'dipakai')
+                                    <span class="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Dipakai
+                                    </span>
+                                @else
+                                    <span class="flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 px-2 py-1 rounded-lg border border-rose-200 dark:border-rose-800/50">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Maintenance
+                                    </span>
+                                @endif
+                            </div>
+                            
+                            <h3 class="text-xl font-bold text-slate-800 dark:text-white line-clamp-1 relative z-10" title="{{ $room->name }}">{{ $room->name }}</h3>
                         </div>
-                        <h3 class="text-lg font-bold mb-2">{{ $feature['title'] }}</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">{{ $feature['desc'] }}</p>
+
+                        <!-- Content Body -->
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Gedung</p>
+                                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 line-clamp-1" title="{{ $room->building }}">{{ $room->building ?? '-' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Lantai / Kode</p>
+                                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ $room->floor ?? '-' }} <span class="text-slate-400 dark:text-slate-600 px-1">•</span> <span class="font-mono text-xs">{{ $room->code }}</span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-5 flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Fasilitas Utama</p>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{{ $room->facilities ?: 'Tidak ada informasi fasilitas.' }}</p>
+                            </div>
+
+                            <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50 pt-4 mt-auto">
+                                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                    <i data-feather="users" class="w-4 h-4"></i>
+                                    <span class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ $room->capacity }} <span class="font-normal text-slate-500 dark:text-slate-500 text-xs">kursi</span></span>
+                                </div>
+                                <a href="{{ route('login') }}" class="inline-flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                                    Pesan <i data-feather="chevron-right" class="w-4 h-4 ml-0.5"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 @endforeach
             </div>
-        </div>
-    </section>
+
+            <!-- Pagination -->
+            <div class="mt-12">
+                {{ $rooms->links('pagination::tailwind') }}
+            </div>
+        @endif
+    </main>
 
     <!-- Footer -->
-    <footer class="border-t border-white/5 py-8">
-        <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-2 text-sm text-slate-500">
-                <div class="w-5 h-5 rounded bg-gradient-to-br from-navy-500 to-navy-700 flex items-center justify-center border border-gold-500/30">
-                    <svg class="w-2.5 h-2.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"></path></svg>
+    <footer class="bg-slate-900 border-t border-slate-800 mt-auto transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 border-b border-slate-800 pb-8">
+                <div class="md:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold transition-colors duration-300">
+                            <i data-feather="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xl font-extrabold tracking-tight text-white">SIPERA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm max-w-sm mb-6 leading-relaxed">
+                        Sistem Informasi Peminjaman Ruangan Universitas. Platform digital cerdas untuk mendukung efisiensi akademik dan kegiatan mahasiswa.
+                    </p>
                 </div>
-                Si-Labu © {{ date('Y') }}
+                <div>
+                    <h4 class="text-white font-bold mb-4">Tautan Cepat</h4>
+                    <ul class="space-y-2 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">Tentang Kami</a></li>
+                        <li><a href="#" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">Panduan Penggunaan</a></li>
+                        <li><a href="{{ route('register') }}" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">Daftar Akun</a></li>
+                        <li><a href="{{ route('admin.login') }}" class="hover:text-gold-400 dark:hover:text-gold-300 transition-colors mt-2 text-xs opacity-75 inline-block">Portal Admin</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Bantuan</h4>
+                    <ul class="space-y-2 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">FAQ</a></li>
+                        <li><a href="#" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">Hubungi Admin</a></li>
+                        <li><a href="#" class="hover:text-blue-400 dark:hover:text-blue-300 transition-colors">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
             </div>
-            <p class="text-xs text-slate-600">Universitas Palangka Raya</p>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <p>&copy; {{ date('Y') }} Universitas. All rights reserved.</p>
+                <div class="flex items-center gap-1 font-medium">
+                    Dibuat dengan <i data-feather="heart" class="w-3 h-3 text-rose-500 dark:text-rose-400 mx-1"></i> untuk Universitas
+                </div>
+            </div>
         </div>
     </footer>
 
-    <style>
-        @keyframes float-slow { 0%,100% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-20px) translateX(10px); } 50% { transform: translateY(-10px) translateX(-5px); } 75% { transform: translateY(-25px) translateX(5px); } }
-        @keyframes float-medium { 0%,100% { transform: translateY(0) translateX(0); } 33% { transform: translateY(-15px) translateX(-8px); } 66% { transform: translateY(-8px) translateX(12px); } }
-        @keyframes float-fast { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
-        .animate-float-medium { animation: float-medium 6s ease-in-out infinite; }
-        .animate-float-fast { animation: float-fast 4s ease-in-out infinite; }
-    </style>
-
     <script>
-        // SPA-like simple page transitions for links
         document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            
+            // Simple page transitions
             const links = document.querySelectorAll('a[href]:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])');
             links.forEach(link => {
                 link.addEventListener('click', e => {

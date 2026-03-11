@@ -83,6 +83,17 @@ class MenuSeeder extends Seeder
             ['route_name' => 'admin.calendar.index', 'icon' => 'clock', 'sort_order' => 1, 'is_active' => true]
         );
 
+        Menu::updateOrCreate(
+            ['context' => 'admin', 'parent_id' => $bookingParent->id, 'name' => 'Verifikasi Denda'],
+            ['route_name' => 'admin.fine-payments.index', 'icon' => 'credit-card', 'sort_order' => 2, 'is_active' => true]
+        );
+
+        // --- Pengaturan ---
+        $settingsParent = Menu::updateOrCreate(
+            ['context' => 'admin', 'parent_id' => null, 'name' => 'Pengaturan'],
+            ['route_name' => 'admin.settings.index', 'icon' => 'settings', 'sort_order' => 50, 'is_active' => true]
+        );
+
         // ──────────────────────────────────────────────
         //  USER MENUS
         // ──────────────────────────────────────────────

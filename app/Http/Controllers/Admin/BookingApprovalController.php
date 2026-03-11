@@ -37,6 +37,7 @@ class BookingApprovalController extends Controller
         $stats = [
             'pending' => Booking::where('status', 'pending')->count(),
             'approved' => Booking::where('status', 'approved')->count(),
+            'return_requested' => Booking::where('status', 'return_requested')->count(),
             'rejected' => Booking::where('status', 'rejected')->count(),
             'finished' => Booking::where('status', 'finished')->count(),
         ];
@@ -46,7 +47,7 @@ class BookingApprovalController extends Controller
 
     public function show(Booking $booking)
     {
-        $booking->load(['user.role', 'room', 'approver', 'equipment']);
+        $booking->load(['user.role', 'room', 'approver', 'equipment', 'finePayments']);
 
         return view('admin.bookings.show', compact('booking'));
     }
@@ -58,35 +59,44 @@ class BookingApprovalController extends Controller
                 ->with('error', 'Hanya peminjaman dengan status "Menunggu" yang dapat disetujui.');
         }
 
-        // Check for conflicts
-        $conflict = Booking::where('room_id', $booking->room_id)
-            ->where('booking_date', $booking->booking_date)
-            ->where('id', '!=', $booking->id)
-            ->where('status', 'approved')
-            ->where(function ($q) use ($booking) {
-                $q->where(function ($q2) use ($booking) {
-                    $q2->where('start_time', '<', $booking->end_time)
-                        ->where('end_time', '>', $booking->start_time);
-                });
-            })
-            ->exists();
+        // Check for conflicts only if a room is assigned
+        if (!$booking->isEquipmentOnly()) {
+            $conflict = Booking::where('room_id', $booking->room_id)
+                ->where('booking_date', $booking->booking_date)
+                ->where('id', '!=', $booking->id)
+                ->where('status', 'approved')
+                ->where(function ($q) use ($booking) {
+                    $q->where(function ($q2) use ($booking) {
+                        $q2->where('start_time', '<', $booking->end_time)
+                            ->where('end_time', '>', $booking->start_time);
+                    });
+                })
+                ->exists();
 
-        if ($conflict) {
-            return redirect()->route('admin.bookings.show', $booking)
-                ->with('error', 'Tidak bisa menyetujui: ruangan sudah di-booking pada waktu yang sama.');
+            if ($conflict) {
+                return redirect()->route('admin.bookings.show', $booking)
+                    ->with('error', 'Tidak bisa menyetujui: ruangan sudah di-booking pada waktu yang sama.');
+            }
         }
+
+        // Set return deadline to booking_date + end_time
+        $returnDeadline = \Carbon\Carbon::parse($booking->booking_date)
+            ->setTimeFromTimeString($booking->end_time);
 
         $booking->update([
             'status' => 'approved',
             'approved_by' => auth()->id(),
             'approved_at' => now(),
+            'return_deadline' => $returnDeadline,
         ]);
+
+        $roomName = $booking->room ? $booking->room->name : 'Fasilitas/Alat';
 
         // Send notification to user
         AppNotification::notify(
             $booking->user_id,
             'Peminjaman Disetujui ✅',
-            'Peminjaman ruangan "' . $booking->room->name . '" pada ' . $booking->booking_date->format('d M Y') . ' (' . substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5) . ') telah disetujui.',
+            'Peminjaman ' . $roomName . ' pada ' . \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') . ' (' . substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5) . ') telah disetujui.',
             'success',
             'check-circle',
             ['booking_id' => $booking->id]
@@ -114,11 +124,13 @@ class BookingApprovalController extends Controller
             'approved_at' => now(),
         ]);
 
+        $roomName = $booking->room ? $booking->room->name : 'Fasilitas/Alat';
+
         // Send notification to user
         AppNotification::notify(
             $booking->user_id,
             'Peminjaman Ditolak ❌',
-            'Peminjaman ruangan "' . $booking->room->name . '" pada ' . $booking->booking_date->format('d M Y') . ' ditolak. Alasan: ' . $request->rejection_reason,
+            'Peminjaman ' . $roomName . ' pada ' . \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') . ' ditolak. Alasan: ' . $request->rejection_reason,
             'danger',
             'x-circle',
             ['booking_id' => $booking->id]
@@ -126,5 +138,53 @@ class BookingApprovalController extends Controller
 
         return redirect()->route('admin.bookings.show', $booking)
             ->with('success', 'Peminjaman berhasil ditolak.');
+    }
+
+    /**
+     * Admin confirms that items/room have been returned.
+     */
+    public function confirmReturn(Booking $booking)
+    {
+        if ($booking->status !== 'return_requested') {
+            return redirect()->route('admin.bookings.show', $booking)
+                ->with('error', 'Peminjaman ini belum mengajukan pengembalian.');
+        }
+
+        $booking->update([
+            'returned_at' => now(),
+            'status' => 'finished',
+        ]);
+
+        // Calculate fine if overdue
+        $fine = $booking->calculateFine();
+        if ($fine > 0) {
+            $booking->update([
+                'fine_amount' => $fine,
+                'fine_status' => 'unpaid',
+            ]);
+
+            AppNotification::notify(
+                $booking->user_id,
+                'Pengembalian Dikonfirmasi — Ada Denda ⚠️',
+                'Pengembalian dikonfirmasi tetapi terlambat ' . $booking->days_late . ' hari. Denda: Rp ' . number_format($fine, 0, ',', '.') . '. Silakan lakukan pembayaran.',
+                'warning',
+                'alert-triangle',
+                ['booking_id' => $booking->id]
+            );
+        } else {
+            $booking->update(['fine_status' => 'none']);
+
+            AppNotification::notify(
+                $booking->user_id,
+                'Pengembalian Dikonfirmasi ✅',
+                'Peminjaman Anda telah dikonfirmasi selesai. Terima kasih!',
+                'success',
+                'check-circle',
+                ['booking_id' => $booking->id]
+            );
+        }
+
+        return redirect()->route('admin.bookings.show', $booking)
+            ->with('success', 'Pengembalian berhasil dikonfirmasi.' . ($fine > 0 ? ' Denda: Rp ' . number_format($fine, 0, ',', '.') : ''));
     }
 }

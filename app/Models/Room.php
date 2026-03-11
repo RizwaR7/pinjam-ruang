@@ -34,6 +34,11 @@ class Room extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function equipment(): HasMany
+    {
+        return $this->hasMany(Equipment::class, 'assigned_room_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

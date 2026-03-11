@@ -49,7 +49,11 @@
                             <i data-feather="clock" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <p class="font-semibold text-slate-800">{{ $booking->room->name }}</p>
+                            @if($booking->room)
+                                <p class="font-semibold text-slate-800">{{ $booking->room->name }}</p>
+                            @else
+                                <p class="font-semibold text-slate-800">Bukan Ruangan (Fasilitas Saja)</p>
+                            @endif
                             <p class="text-sm text-slate-500">{{ $booking->purpose }} — {{ $booking->user->name }}</p>
                         </div>
                     </div>
@@ -85,7 +89,7 @@
                         @forelse($recentBookings as $booking)
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-8 py-4 font-semibold text-slate-800">{{ $booking->user->name }}</td>
-                                <td class="px-6 py-4 text-slate-600">{{ $booking->room->name }}</td>
+                                <td class="px-6 py-4 text-slate-600">{{ $booking->room ? $booking->room->name : 'Fasilitas Saja' }}</td>
                                 <td class="px-6 py-4 text-slate-600">{{ $booking->booking_date->format('d M Y') }}</td>
                                 <td class="px-6 py-4 text-slate-600 font-mono">{{ substr($booking->start_time, 0, 5) }} - {{ substr($booking->end_time, 0, 5) }}</td>
                                 <td class="px-6 py-4 text-center">
@@ -110,7 +114,7 @@
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-navy-500 to-navy-700 text-white flex items-center justify-center font-bold text-xs shrink-0">{{ strtoupper(substr($booking->user->name, 0, 1)) }}</div>
                                 <div>
                                     <p class="text-sm font-semibold text-slate-800">{{ $booking->user->name }}</p>
-                                    <p class="text-xs text-slate-400">{{ $booking->room->name }}</p>
+                                    <p class="text-xs text-slate-400">{{ $booking->room ? $booking->room->name : 'Fasilitas Saja' }}</p>
                                 </div>
                             </div>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200">{{ $booking->status_label }}</span>

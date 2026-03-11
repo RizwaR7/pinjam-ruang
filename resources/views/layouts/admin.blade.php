@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Si-Labu') }} — Admin</title>
+    <title>{{ config('app.name', 'SIPERA') }} — Admin</title>
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('admin_assets/images/favicon/favicon.ico') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -65,13 +65,16 @@
             width: 6px;
             height: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: transparent;
         }
+
         ::-webkit-scrollbar-thumb {
             background-color: rgba(148, 163, 184, 0.4);
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background-color: rgba(100, 116, 139, 0.6);
         }
@@ -147,9 +150,9 @@
             var parentInactiveClasses = ['text-navy-100', 'hover:text-white', 'hover:bg-navy-400/40'];
 
             // Reset all menu links
-            nav.querySelectorAll('a[href]').forEach(function(link) {
-                activeClasses.forEach(function(cls) { link.classList.remove(cls); });
-                inactiveClasses.forEach(function(cls) { link.classList.add(cls); });
+            nav.querySelectorAll('a[href]').forEach(function (link) {
+                activeClasses.forEach(function (cls) { link.classList.remove(cls); });
+                inactiveClasses.forEach(function (cls) { link.classList.add(cls); });
 
                 // feather.replace() converts <i> to <svg class="feather ...">
                 var icon = link.querySelector('svg.feather');
@@ -165,9 +168,9 @@
             });
 
             // Reset all parent buttons
-            nav.querySelectorAll('button').forEach(function(btn) {
-                parentActiveClasses.forEach(function(cls) { btn.classList.remove(cls); });
-                parentInactiveClasses.forEach(function(cls) { btn.classList.add(cls); });
+            nav.querySelectorAll('button').forEach(function (btn) {
+                parentActiveClasses.forEach(function (cls) { btn.classList.remove(cls); });
+                parentInactiveClasses.forEach(function (cls) { btn.classList.add(cls); });
 
                 var icon = btn.querySelector('svg.feather');
                 if (icon) {
@@ -184,7 +187,7 @@
             // Find the BEST matching link (most specific / longest path wins)
             var bestMatch = null;
             var bestMatchLen = 0;
-            nav.querySelectorAll('a[href]').forEach(function(link) {
+            nav.querySelectorAll('a[href]').forEach(function (link) {
                 var linkPath = new URL(link.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     if (linkPath.length > bestMatchLen) {
@@ -200,8 +203,8 @@
             // Highlight only the best match
             if (bestMatch) {
                 var link = bestMatch;
-                inactiveClasses.forEach(function(cls) { link.classList.remove(cls); });
-                activeClasses.forEach(function(cls) { link.classList.add(cls); });
+                inactiveClasses.forEach(function (cls) { link.classList.remove(cls); });
+                activeClasses.forEach(function (cls) { link.classList.add(cls); });
 
                 var icon = link.querySelector('svg.feather');
                 if (icon) {
@@ -219,8 +222,8 @@
                 if (parentDiv) {
                     var parentBtn = parentDiv.querySelector(':scope > button');
                     if (parentBtn) {
-                        parentInactiveClasses.forEach(function(cls) { parentBtn.classList.remove(cls); });
-                        parentActiveClasses.forEach(function(cls) { parentBtn.classList.add(cls); });
+                        parentInactiveClasses.forEach(function (cls) { parentBtn.classList.remove(cls); });
+                        parentActiveClasses.forEach(function (cls) { parentBtn.classList.add(cls); });
 
                         var parentIcon = parentBtn.querySelector('svg.feather');
                         if (parentIcon) {
@@ -240,7 +243,7 @@
     @stack('scripts')
 
     <script>
-        (function() {
+        (function () {
             var _searchInput = document.getElementById('menu-search');
             var _sidebarMenu = document.getElementById('sidebar-menu');
 
@@ -250,12 +253,12 @@
                 _searchInput.addEventListener('input', function () {
                     clearTimeout(debounceTimer);
 
-                    debounceTimer = setTimeout(function() {
+                    debounceTimer = setTimeout(function () {
                         var query = _searchInput.value.trim();
 
                         fetch("{{ route('admin.menus.search') }}?q=" + query)
-                            .then(function(res) { return res.text(); })
-                            .then(function(data) {
+                            .then(function (res) { return res.text(); })
+                            .then(function (data) {
                                 if (_sidebarMenu) {
                                     _sidebarMenu.innerHTML = data;
                                 }

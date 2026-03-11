@@ -39,9 +39,9 @@
 
                             <!-- Room Selection -->
                             <div class="space-y-2">
-                                <label for="room_id" class="block text-sm font-bold text-slate-700">Pilih Ruangan <span class="text-rose-500">*</span></label>
+                                <label for="room_id" class="block text-sm font-bold text-slate-700">Pilih Ruangan <span class="text-slate-400 font-normal">(Opsional bila hanya meminjam alat)</span></label>
                                 <select id="room_id" name="room_id" class="block w-full px-4 py-3 bg-slate-50 border @error('room_id') border-rose-300 @else border-slate-200 @enderror rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white focus:outline-none">
-                                    <option value="">-- Pilih Ruangan --</option>
+                                    <option value="">Tidak meminjam ruangan (Hanya Alat/Fasilitas Saja)</option>
                                     @foreach($rooms as $room)
                                         <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
                                             {{ $room->name }} ({{ $room->code }}) — {{ $room->building ?? $room->location }} — Kapasitas: {{ $room->capacity }}

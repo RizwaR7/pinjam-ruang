@@ -38,12 +38,21 @@
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
                     <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 class="text-lg font-bold text-slate-800">Informasi Peminjaman</h3>
-                        @php $c = ['pending'=>'amber','approved'=>'emerald','rejected'=>'rose','finished'=>'sky'][$booking->status] ?? 'slate'; @endphp
+                        @php $c = ['pending'=>'amber','approved'=>'emerald','rejected'=>'rose','finished'=>'sky','return_requested'=>'cyan'][$booking->status] ?? 'slate'; @endphp
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200">{{ $booking->status_label }}</span>
                     </div>
                     <div class="p-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Ruangan</label><p class="text-slate-800 font-semibold text-lg">{{ $booking->room->name }}</p><p class="text-xs font-mono text-slate-500">{{ $booking->room->code }} · {{ ucfirst($booking->room->scope) }}{{ $booking->room->faculty ? ' · ' . $booking->room->faculty : '' }}</p></div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Ruangan</label>
+                                @if($booking->room)
+                                    <p class="text-slate-800 font-semibold text-lg">{{ $booking->room->name }}</p>
+                                    <p class="text-xs font-mono text-slate-500">{{ $booking->room->code }} · {{ ucfirst($booking->room->scope) }}{{ $booking->room->faculty ? ' · ' . $booking->room->faculty : '' }}</p>
+                                @else
+                                    <p class="text-slate-800 font-semibold text-lg">Peminjaman Fasilitas/Alat Luar</p>
+                                    <p class="text-xs font-mono text-slate-500">Tanpa Ruangan</p>
+                                @endif
+                            </div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Peminjam</label><div class="flex items-center gap-3 mt-1"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-navy-500 to-navy-500 text-white flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($booking->user->name, 0, 1)) }}</div><div><p class="text-slate-800 font-semibold">{{ $booking->user->name }}</p><p class="text-xs text-slate-500">{{ $booking->user->email }}{{ $booking->user->role ? ' · ' . $booking->user->role->name : '' }}</p></div></div></div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tanggal</label><p class="text-slate-800 font-semibold">{{ $booking->booking_date->format('l, d F Y') }}</p></div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Waktu</label><p class="text-slate-800 font-semibold font-mono">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</p></div>
@@ -80,6 +89,48 @@
                             @endif
                             @if($booking->approver)
                                 <div class="space-y-1 md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Diproses Oleh</label><p class="text-slate-700 font-medium">{{ $booking->approver->name }} <span class="text-xs text-slate-400 font-normal">· {{ $booking->approved_at->format('d M Y H:i') }}</span></p></div>
+                            @endif
+                            {{-- Return Deadline --}}
+                            @if($booking->return_deadline)
+                                <div class="md:col-span-2 p-4 rounded-xl border {{ $booking->isOverdue() ? 'bg-rose-50 border-rose-200' : 'bg-cyan-50 border-cyan-200' }}">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <svg class="w-4 h-4 {{ $booking->isOverdue() ? 'text-rose-500' : 'text-cyan-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span class="text-sm font-bold {{ $booking->isOverdue() ? 'text-rose-700' : 'text-cyan-700' }}">Batas Pengembalian: {{ $booking->return_deadline->format('d M Y H:i') }}</span>
+                                        @if($booking->isOverdue())
+                                            <span class="ml-2 px-2 py-0.5 text-xs font-bold text-rose-700 bg-rose-100 rounded-full">Terlambat {{ $booking->days_late }} hari</span>
+                                        @endif
+                                    </div>
+                                    @if($booking->returned_at)
+                                        <p class="text-xs text-slate-500 mt-1">Dikembalikan: {{ $booking->returned_at->format('d M Y H:i') }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                            {{-- Fine Info --}}
+                            @if($booking->fine_amount > 0)
+                                <div class="md:col-span-2 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-amber-800">Denda Keterlambatan</h4>
+                                            <p class="text-xl font-black text-amber-700">Rp {{ number_format($booking->fine_amount, 0, ',', '.') }}</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $booking->fine_status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">{{ $booking->fine_status === 'paid' ? '✅ Lunas' : '⏳ Belum Lunas' }}</span>
+                                    </div>
+                                </div>
+                            @endif
+                            {{-- Fine Payments --}}
+                            @if($booking->finePayments->isNotEmpty())
+                                <div class="md:col-span-2 space-y-2">
+                                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Bukti Pembayaran Denda</label>
+                                    @foreach($booking->finePayments as $fp)
+                                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                            <div class="flex items-center gap-3">
+                                                <a href="{{ asset('storage/' . $fp->proof_file) }}" target="_blank" class="text-cyan-600 hover:underline text-sm font-semibold">📎 Lihat Bukti</a>
+                                                <span class="text-xs text-slate-400">{{ $fp->created_at->format('d M Y H:i') }}</span>
+                                            </div>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-{{ $fp->status_badge }}-100 text-{{ $fp->status_badge }}-700">{{ $fp->status_label }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -132,6 +183,31 @@
                             </form>
                         </div>
                     </div>
+                @elseif($booking->status === 'return_requested')
+                    {{-- Confirm Return Panel --}}
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 bg-cyan-50/30">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                Konfirmasi Pengembalian
+                            </h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <p class="text-sm text-slate-600">
+                                Peminjam mengajukan pengembalian pada <strong>{{ $booking->return_requested_at ? $booking->return_requested_at->format('d M Y H:i') : '-' }}</strong>.
+                                @if($booking->isOverdue())
+                                    <br><span class="text-rose-600 font-bold">⚠️ Terlambat {{ $booking->days_late }} hari — denda Rp {{ number_format($booking->calculateFine(), 0, ',', '.') }}</span>
+                                @endif
+                            </p>
+                            <form action="{{ route('admin.bookings.confirm-return', $booking) }}" method="POST" onsubmit="return confirm('Konfirmasi pengembalian ini?')">
+                                @csrf @method('PATCH')
+                                <button type="submit" class="w-full inline-flex items-center justify-center px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-teal-600 rounded-xl hover:from-cyan-400 hover:to-teal-500 transition-all shadow-lg shadow-cyan-500/20">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Konfirmasi Pengembalian
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 @else
                     <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 p-8 text-center">
                         <div class="w-16 h-16 mx-auto rounded-full bg-{{ $c }}-50 border border-{{ $c }}-100 flex items-center justify-center text-{{ $c }}-500 mb-4">
@@ -143,6 +219,7 @@
                 @endif
 
                 <!-- Room Quick Info -->
+                @if($booking->room)
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 p-6">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Info Ruangan</h4>
                     <div class="space-y-3">
@@ -151,6 +228,7 @@
                         <div class="flex justify-between"><span class="text-sm text-slate-500">Scope</span><span class="text-sm font-bold text-slate-800">{{ ucfirst($booking->room->scope) }}</span></div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
     </div>

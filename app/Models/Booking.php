@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
@@ -26,13 +27,24 @@ class Booking extends Model
         'approved_by',
         'rejection_reason',
         'approved_at',
+        'return_deadline',
+        'returned_at',
+        'return_requested_at',
+        'fine_amount',
+        'fine_status',
     ];
 
     protected $casts = [
         'booking_date' => 'date',
         'approved_at' => 'datetime',
+        'return_deadline' => 'datetime',
+        'returned_at' => 'datetime',
+        'return_requested_at' => 'datetime',
         'participant_count' => 'integer',
+        'fine_amount' => 'decimal:2',
     ];
+
+    // ── Relations ─────────────────────────────────────────
 
     public function user(): BelongsTo
     {
@@ -56,6 +68,13 @@ class Booking extends Model
             ->withTimestamps();
     }
 
+    public function finePayments(): HasMany
+    {
+        return $this->hasMany(FinePayment::class);
+    }
+
+    // ── Scopes ────────────────────────────────────────────
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
@@ -72,6 +91,16 @@ class Booking extends Model
             ->whereIn('status', ['pending', 'approved']);
     }
 
+    public function scopeOverdue($query)
+    {
+        return $query->where('status', 'approved')
+            ->whereNotNull('return_deadline')
+            ->where('return_deadline', '<', now())
+            ->whereNull('returned_at');
+    }
+
+    // ── Accessors ─────────────────────────────────────────
+
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->status) {
@@ -80,6 +109,7 @@ class Booking extends Model
             'rejected' => 'danger',
             'finished' => 'info',
             'cancelled' => 'secondary',
+            'return_requested' => 'sky',
             default => 'secondary',
         };
     }
@@ -92,7 +122,70 @@ class Booking extends Model
             'rejected' => 'Ditolak',
             'finished' => 'Selesai',
             'cancelled' => 'Dibatalkan',
+            'return_requested' => 'Menunggu Konfirmasi Pengembalian',
             default => $this->status,
         };
+    }
+
+    // ── Helpers ────────────────────────────────────────────
+
+    /**
+     * Determine if this booking is for equipment only (no room booked).
+     */
+    public function isEquipmentOnly(): bool
+    {
+        return is_null($this->room_id);
+    }
+
+    /**
+     * Check if this booking is overdue (past return deadline and not yet returned).
+     */
+    public function isOverdue(): bool
+    {
+        return $this->return_deadline
+            && now()->greaterThan($this->return_deadline)
+            && is_null($this->returned_at);
+    }
+
+    /**
+     * Check if the borrower has requested a return.
+     */
+    public function isReturnRequested(): bool
+    {
+        return $this->status === 'return_requested';
+    }
+
+    /**
+     * Calculate the late fee based on days overdue.
+     */
+    public function calculateFine(): float
+    {
+        if (!$this->return_deadline) {
+            return 0;
+        }
+
+        $returnDate = $this->returned_at ?? now();
+        $daysLate = max(0, (int) $returnDate->startOfDay()->diffInDays($this->return_deadline->startOfDay(), false) * -1);
+
+        if ($daysLate <= 0) {
+            return 0;
+        }
+
+        $finePerDay = (float) Setting::get('fine_per_day', 5000);
+
+        return $daysLate * $finePerDay;
+    }
+
+    /**
+     * Get the number of days this booking is overdue.
+     */
+    public function getDaysLateAttribute(): int
+    {
+        if (!$this->return_deadline) {
+            return 0;
+        }
+
+        $returnDate = $this->returned_at ?? now();
+        return max(0, (int) $returnDate->startOfDay()->diffInDays($this->return_deadline->startOfDay(), false) * -1);
     }
 }

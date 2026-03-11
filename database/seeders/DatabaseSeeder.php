@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             EquipmentSeeder::class,
             MenuSeeder::class,
+            SettingSeeder::class,
         ]);
     }
 }

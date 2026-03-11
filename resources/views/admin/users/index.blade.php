@@ -6,7 +6,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Manajemen User</h1>
-                <p class="text-sm text-slate-500 mt-1">Kelola semua pengguna sistem Si-Labu</p>
+                <p class="text-sm text-slate-500 mt-1">Kelola semua pengguna sistem SIPERA</p>
             </div>
             <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-navy-900 bg-gold-500 rounded-xl hover:bg-gold-400 transition-all shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>

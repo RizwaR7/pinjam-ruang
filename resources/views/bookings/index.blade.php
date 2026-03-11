@@ -54,9 +54,15 @@
                         @forelse($bookings as $i => $booking)
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-6 py-4 text-center text-slate-400">{{ $bookings->firstItem() + $i }}</td>
-                                <td class="px-6 py-4"><span
-                                        class="font-semibold text-slate-800">{{ $booking->room->name }}</span><span
-                                        class="block text-xs text-slate-400 font-mono">{{ $booking->room->code }}</span></td>
+                                <td class="px-6 py-4">
+                                    @if($booking->room)
+                                        <span class="font-semibold text-slate-800">{{ $booking->room->name }}</span>
+                                        <span class="block text-xs text-slate-400 font-mono">{{ $booking->room->code }}</span>
+                                    @else
+                                        <span class="font-semibold text-slate-800">Peminjaman Fasilitas/Alat</span>
+                                        <span class="block text-xs text-slate-400 font-mono">Tanpa Ruangan</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 font-medium text-slate-700">{{ $booking->booking_date->format('d M Y') }}
                                 </td>
                                 <td class="px-6 py-4 text-slate-600 font-mono text-xs">
@@ -109,8 +115,13 @@
                         class="block p-4 hover:bg-slate-50 transition-colors active:bg-slate-100">
                         <div class="flex items-start justify-between mb-2">
                             <div>
-                                <p class="text-sm font-bold text-slate-800">{{ $booking->room->name }}</p>
-                                <p class="text-xs text-slate-400 font-mono">{{ $booking->room->code }}</p>
+                                @if($booking->room)
+                                    <p class="text-sm font-bold text-slate-800">{{ $booking->room->name }}</p>
+                                    <p class="text-xs text-slate-400 font-mono">{{ $booking->room->code }}</p>
+                                @else
+                                    <p class="text-sm font-bold text-slate-800">Peminjaman Fasilitas/Alat</p>
+                                    <p class="text-xs text-slate-400 font-mono">Tanpa Ruangan</p>
+                                @endif
                             </div>
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200 shrink-0">{{ $booking->status_label }}</span>
@@ -133,7 +144,8 @@
 
             @if($bookings->hasPages())
                 <div class="px-6 sm:px-8 py-4 border-t border-slate-100 bg-slate-50/50">
-                    {{ $bookings->links('pagination::tailwind') }}</div>
+                    {{ $bookings->links('pagination::tailwind') }}
+                </div>
             @endif
         </div>
     </div>

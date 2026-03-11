@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Equipment extends Model
@@ -21,6 +22,7 @@ class Equipment extends Model
         'is_available',
         'condition',
         'location',
+        'assigned_room_id',
     ];
 
     protected $casts = [
@@ -33,6 +35,11 @@ class Equipment extends Model
         return $this->belongsToMany(Booking::class, 'booking_equipment')
             ->withPivot('quantity')
             ->withTimestamps();
+    }
+
+    public function assignedRoom(): BelongsTo
+    {
+        return $this->belongsTo(Room::class, 'assigned_room_id');
     }
 
     public function scopeAvailable($query)

@@ -11,9 +11,10 @@ use App\Http\Controllers\Admin\MenuController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
+
+// ── Admin Login Route ─────────────────────────────────────
+Route::get('login/admin', [\App\Http\Controllers\Auth\LoginController::class, 'showAdminLoginForm'])->name('admin.login');
 
 Auth::routes();
 
@@ -28,6 +29,8 @@ Route::middleware(['auth', 'user-role:peminjam'])->group(function () {
     Route::get('/bookings/create', [App\Http\Controllers\BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [App\Http\Controllers\BookingController::class, 'show'])->name('bookings.show');
+    Route::patch('/bookings/{booking}/request-return', [App\Http\Controllers\BookingController::class, 'requestReturn'])->name('bookings.request-return');
+    Route::post('/bookings/{booking}/pay-fine', [App\Http\Controllers\BookingController::class, 'uploadFinePayment'])->name('bookings.pay-fine');
 
     // ── Kalender (User) ─────────────────────────────────
     Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
@@ -70,6 +73,16 @@ Route::middleware(['auth', 'user-role:pengelola_sistem,pengelola_gedung'])->pref
     Route::get('/bookings/{booking}', [App\Http\Controllers\Admin\BookingApprovalController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/approve', [App\Http\Controllers\Admin\BookingApprovalController::class, 'approve'])->name('bookings.approve');
     Route::patch('/bookings/{booking}/reject', [App\Http\Controllers\Admin\BookingApprovalController::class, 'reject'])->name('bookings.reject');
+    Route::patch('/bookings/{booking}/confirm-return', [App\Http\Controllers\Admin\BookingApprovalController::class, 'confirmReturn'])->name('bookings.confirm-return');
+
+    // ── Settings ──────────────────────────────────────────
+    Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+
+    // ── Fine Payments ─────────────────────────────────────
+    Route::get('/fine-payments', [App\Http\Controllers\Admin\FinePaymentController::class, 'index'])->name('fine-payments.index');
+    Route::patch('/fine-payments/{finePayment}/verify', [App\Http\Controllers\Admin\FinePaymentController::class, 'verify'])->name('fine-payments.verify');
+    Route::patch('/fine-payments/{finePayment}/reject', [App\Http\Controllers\Admin\FinePaymentController::class, 'reject'])->name('fine-payments.reject');
 
     // ── Kalender (Admin) ──────────────────────────────
     Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
