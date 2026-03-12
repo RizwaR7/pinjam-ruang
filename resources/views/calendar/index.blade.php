@@ -10,7 +10,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-black text-slate-800 tracking-tight">Kalender Ruangan</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Real-time Monitoring</p>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Real-time Monitoring</p>
                 </div>
             </div>
             
@@ -19,7 +19,7 @@
                     <i data-feather="chevron-left" class="w-4 h-4"></i>
                 </button>
                 <div class="px-4 text-center min-w-[140px]">
-                    <span id="calendar-title" class="text-xs font-black text-slate-600 uppercase tracking-widest"></span>
+                    <span id="calendar-title" class="text-sm font-black text-slate-600 uppercase tracking-widest"></span>
                 </div>
                 <button onclick="nextMonth()" class="p-1.5 rounded-lg hover:bg-white hover:text-navy-600 transition-all text-slate-400">
                     <i data-feather="chevron-right" class="w-4 h-4"></i>
@@ -34,7 +34,7 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3">
                     <div class="flex items-center gap-2">
                         <i data-feather="filter" class="w-3.5 h-3.5 text-navy-600"></i>
-                        <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Filter</h3>
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Filter</h3>
                     </div>
 
                     <div class="grid grid-cols-1 gap-2">
@@ -55,7 +55,7 @@
                         </select>
 
                         <button onclick="loadEvents()"
-                            class="w-full py-2.5 bg-navy-600 text-white text-[10px] font-black rounded-xl hover:bg-navy-700 transition-all uppercase tracking-widest">
+                            class="w-full py-2.5 bg-navy-600 text-xs font-black rounded-xl hover:bg-navy-700 transition-all uppercase tracking-widest">
                             Terapkan
                         </button>
                     </div>
@@ -65,7 +65,7 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex-1 flex flex-col min-h-0">
                     <div class="flex items-center gap-2 mb-3">
                         <i data-feather="search" class="w-3.5 h-3.5 text-gold-500"></i>
-                        <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cek Slot</h3>
+                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Cek Slot</h3>
                     </div>
                     
                     <div class="space-y-2">
@@ -78,7 +78,7 @@
                         <input type="date" id="avail-date" min="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}"
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-700">
                         <button onclick="checkAvailability()"
-                            class="w-full py-2.5 bg-gold-400 text-white text-[10px] font-black rounded-xl hover:bg-gold-500 transition-all uppercase tracking-widest">
+                            class="w-full py-2.5 bg-gold-400 text-white text-xs font-black rounded-xl hover:bg-gold-500 transition-all uppercase tracking-widest">
                             Cek
                         </button>
                     </div>
@@ -87,7 +87,7 @@
                 </div>
 
                 <!-- Legend -->
-                <div class="bg-white p-3 rounded-xl border border-slate-100 text-[8px] flex justify-between font-black text-slate-400 uppercase tracking-widest">
+                <div class="bg-white p-3 rounded-xl border border-slate-100 text-[10px] flex justify-between font-black text-slate-400 uppercase tracking-widest">
                     <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Okay</div>
                     <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span> Full</div>
                     <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span> Past</div>
@@ -99,7 +99,7 @@
                 <!-- Weekday Header -->
                 <div class="grid grid-cols-7 bg-slate-50/50 border-b border-slate-100">
                     @foreach(['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] as $day)
-                        <div class="py-3 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                        <div class="py-3 text-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
                             {{ $day }}
                         </div>
                     @endforeach
@@ -121,7 +121,7 @@
                 <div class="px-6 py-4 flex items-center justify-between border-b border-slate-50">
                     <div>
                         <h3 id="modal-date-title" class="text-lg font-black text-slate-800 tracking-tight"></h3>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Agenda Penggunaan</p>
+                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Agenda Penggunaan</p>
                     </div>
                     <button onclick="closeModal()" class="p-2 bg-slate-50 hover:bg-slate-100 text-slate-400 rounded-xl transition-all">
                         <i data-feather="x" class="w-4 h-4"></i>
@@ -194,7 +194,7 @@
                          onclick="showDayEvents('${dateStr}')">
                         
                         <div class="flex justify-between items-start mb-0.5">
-                            <span class="text-[10px] font-black 
+                            <span class="text-xs font-black 
                                 ${isToday ? 'bg-navy-600 text-white w-5 h-5 flex items-center justify-center rounded-lg' : 'text-slate-300 group-hover:text-navy-600'}">
                                 ${d}
                             </span>
@@ -202,12 +202,12 @@
 
                         <div class="space-y-0.5 overflow-hidden">
                             ${dayEvents.slice(0, 3).map(ev => `
-                                <div class="px-1 text-[7px] font-black truncate rounded border
+                                <div class="px-1 text-[9px] font-black truncate rounded border
                                     ${ev.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gold-50 text-gold-600 border-gold-100'}">
                                     ${ev.start_time.split(':')[0]}… ${ev.room_code || ev.room.substring(0,5)}
                                 </div>
                             `).join('')}
-                            ${dayEvents.length > 3 ? `<div class="text-[6px] font-black text-slate-300 uppercase ml-0.5">+${dayEvents.length - 3}</div>` : ''}
+                            ${dayEvents.length > 3 ? `<div class="text-[8px] font-black text-slate-300 uppercase ml-0.5">+${dayEvents.length - 3}</div>` : ''}
                         </div>
                     </div>`;
                 }
