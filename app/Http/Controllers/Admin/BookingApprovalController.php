@@ -34,12 +34,20 @@ class BookingApprovalController extends Controller
             ->paginate(15)
             ->appends(request()->query());
 
+        $rawStats = Booking::selectRaw('
+            SUM(status = "pending") as pending,
+            SUM(status = "approved") as approved,
+            SUM(status = "return_requested") as return_requested,
+            SUM(status = "rejected") as rejected,
+            SUM(status = "finished") as finished
+        ')->first();
+
         $stats = [
-            'pending' => Booking::where('status', 'pending')->count(),
-            'approved' => Booking::where('status', 'approved')->count(),
-            'return_requested' => Booking::where('status', 'return_requested')->count(),
-            'rejected' => Booking::where('status', 'rejected')->count(),
-            'finished' => Booking::where('status', 'finished')->count(),
+            'pending'          => (int) ($rawStats->pending ?? 0),
+            'approved'         => (int) ($rawStats->approved ?? 0),
+            'return_requested' => (int) ($rawStats->return_requested ?? 0),
+            'rejected'         => (int) ($rawStats->rejected ?? 0),
+            'finished'         => (int) ($rawStats->finished ?? 0),
         ];
 
         return view('admin.bookings.index', compact('bookings', 'stats'));

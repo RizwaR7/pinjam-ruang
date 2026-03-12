@@ -29,11 +29,18 @@ class EquipmentController extends Controller
 
         $equipment = $query->orderBy('category')->orderBy('name')->paginate(15)->appends(request()->query());
 
+        $rawStats = Equipment::selectRaw('
+            COUNT(*) as total,
+            SUM(is_available = 1) as available,
+            SUM(condition = "baik") as baik,
+            SUM(condition IN ("rusak_ringan", "rusak_berat")) as rusak
+        ')->first();
+
         $stats = [
-            'total' => Equipment::count(),
-            'available' => Equipment::where('is_available', true)->count(),
-            'baik' => Equipment::where('condition', 'baik')->count(),
-            'rusak' => Equipment::whereIn('condition', ['rusak_ringan', 'rusak_berat'])->count(),
+            'total'     => (int) ($rawStats->total ?? 0),
+            'available' => (int) ($rawStats->available ?? 0),
+            'baik'      => (int) ($rawStats->baik ?? 0),
+            'rusak'     => (int) ($rawStats->rusak ?? 0),
         ];
 
         return view('admin.equipment.index', compact('equipment', 'stats'));
