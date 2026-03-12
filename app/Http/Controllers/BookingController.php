@@ -27,12 +27,7 @@ class BookingController extends Controller
 
         $bookings = $query->orderByDesc('created_at')->paginate(10);
 
-        $stats = [
-            'total' => Booking::where('user_id', auth()->id())->count(),
-            'pending' => Booking::where('user_id', auth()->id())->where('status', 'pending')->count(),
-            'approved' => Booking::where('user_id', auth()->id())->where('status', 'approved')->count(),
-            'rejected' => Booking::where('user_id', auth()->id())->where('status', 'rejected')->count(),
-        ];
+        $stats = Booking::getStatsByUser(auth()->id());
 
         return view('bookings.index', compact('bookings', 'stats'));
     }
@@ -83,11 +78,9 @@ class BookingController extends Controller
             $conflict = Booking::where('room_id', $validated['room_id'])
                 ->where('booking_date', $validated['booking_date'])
                 ->whereIn('status', ['pending', 'approved'])
-                ->where(function ($q) use ($validated) {
-                    $q->where(function ($q2) use ($validated) {
-                        $q2->where('start_time', '<', $validated['end_time'])
-                            ->where('end_time', '>', $validated['start_time']);
-                    });
+                ->where(function ($timeOverlapQuery) use ($validated) {
+                    $timeOverlapQuery->where('start_time', '<', $validated['end_time'])
+                        ->where('end_time', '>', $validated['start_time']);
                 })
                 ->exists();
 

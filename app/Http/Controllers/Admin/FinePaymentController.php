@@ -27,7 +27,7 @@ class FinePaymentController extends Controller
 
     public function verify(FinePayment $finePayment)
     {
-        if ($finePayment->status !== 'pending') {
+        if (!$finePayment->isPending()) {
             return back()->with('error', 'Pembayaran ini sudah diproses.');
         }
 
@@ -55,7 +55,7 @@ class FinePaymentController extends Controller
 
     public function reject(Request $request, FinePayment $finePayment)
     {
-        if ($finePayment->status !== 'pending') {
+        if (!$finePayment->isPending()) {
             return back()->with('error', 'Pembayaran ini sudah diproses.');
         }
 

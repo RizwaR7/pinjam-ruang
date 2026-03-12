@@ -51,4 +51,12 @@ class FinePayment extends Model
             default => 'slate',
         };
     }
+
+    /**
+     * Check if this payment is still awaiting verification.
+     */
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
 }

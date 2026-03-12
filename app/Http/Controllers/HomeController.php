@@ -50,12 +50,7 @@ class HomeController extends Controller
     {
         $user = auth()->user();
 
-        $stats = [
-            'total' => Booking::where('user_id', $user->id)->count(),
-            'pending' => Booking::where('user_id', $user->id)->where('status', 'pending')->count(),
-            'approved' => Booking::where('user_id', $user->id)->where('status', 'approved')->count(),
-            'rejected' => Booking::where('user_id', $user->id)->where('status', 'rejected')->count(),
-        ];
+        $stats = Booking::getStatsByUser($user->id);
 
         $upcomingBookings = Booking::with('room')
             ->where('user_id', $user->id)

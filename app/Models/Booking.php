@@ -156,24 +156,43 @@ class Booking extends Model
     }
 
     /**
+     * Get the display name of the resource being borrowed
+     * (room name, or a generic label for equipment-only bookings).
+     */
+    public function getResourceNameAttribute(): string
+    {
+        return $this->room ? $this->room->name : 'Fasilitas/Alat';
+    }
+
+    /**
+     * Get booking status statistics for a specific user.
+     *
+     * @return array{total: int, pending: int, approved: int, rejected: int}
+     */
+    public static function getStatsByUser(int $userId): array
+    {
+        $baseQuery = self::where('user_id', $userId);
+
+        return [
+            'total'    => (clone $baseQuery)->count(),
+            'pending'  => (clone $baseQuery)->where('status', 'pending')->count(),
+            'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
+            'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
+        ];
+    }
+
+    /**
      * Calculate the late fee based on days overdue.
      */
     public function calculateFine(): float
     {
-        if (!$this->return_deadline) {
-            return 0;
-        }
-
-        $returnDate = $this->returned_at ?? now();
-        $daysLate = max(0, (int) $returnDate->startOfDay()->diffInDays($this->return_deadline->startOfDay(), false) * -1);
-
-        if ($daysLate <= 0) {
+        if ($this->days_late <= 0) {
             return 0;
         }
 
         $finePerDay = (float) Setting::get('fine_per_day', 5000);
 
-        return $daysLate * $finePerDay;
+        return $this->days_late * $finePerDay;
     }
 
     /**

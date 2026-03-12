@@ -36,8 +36,7 @@ class RoomController extends Controller
 
         $rooms = $query->orderBy('building')->orderBy('name')->paginate(10)->withQueryString();
 
-        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
-        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
+        [$buildings, $faculties] = $this->getBuildingsAndFaculties();
 
         $stats = [
             'total' => Room::count(),
@@ -51,8 +50,7 @@ class RoomController extends Controller
 
     public function create()
     {
-        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
-        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
+        [$buildings, $faculties] = $this->getBuildingsAndFaculties();
 
         return view('admin.rooms.create', compact('buildings', 'faculties'));
     }
@@ -101,8 +99,7 @@ class RoomController extends Controller
 
     public function edit(Room $room)
     {
-        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
-        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
+        [$buildings, $faculties] = $this->getBuildingsAndFaculties();
 
         return view('admin.rooms.edit', compact('room', 'buildings', 'faculties'));
     }
@@ -146,5 +143,18 @@ class RoomController extends Controller
 
         return redirect()->route('admin.rooms.index')
             ->with('success', 'Ruangan "' . $roomName . '" berhasil dihapus.');
+    }
+
+    /**
+     * Retrieve the sorted list of distinct buildings and faculties for form dropdowns.
+     *
+     * @return array{0: \Illuminate\Support\Collection, 1: \Illuminate\Support\Collection}
+     */
+    private function getBuildingsAndFaculties(): array
+    {
+        $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
+        $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
+
+        return [$buildings, $faculties];
     }
 }

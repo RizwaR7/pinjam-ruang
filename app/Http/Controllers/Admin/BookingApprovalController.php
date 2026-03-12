@@ -18,8 +18,8 @@ class BookingApprovalController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('user', fn($u) => $u->where('name', 'like', '%' . $request->search . '%'))
+            $query->where(function ($searchQuery) use ($request) {
+                $searchQuery->whereHas('user', fn($u) => $u->where('name', 'like', '%' . $request->search . '%'))
                     ->orWhereHas('room', fn($r) => $r->where('name', 'like', '%' . $request->search . '%'))
                     ->orWhere('purpose', 'like', '%' . $request->search . '%');
             });
@@ -65,11 +65,9 @@ class BookingApprovalController extends Controller
                 ->where('booking_date', $booking->booking_date)
                 ->where('id', '!=', $booking->id)
                 ->where('status', 'approved')
-                ->where(function ($q) use ($booking) {
-                    $q->where(function ($q2) use ($booking) {
-                        $q2->where('start_time', '<', $booking->end_time)
-                            ->where('end_time', '>', $booking->start_time);
-                    });
+                ->where(function ($timeOverlapQuery) use ($booking) {
+                    $timeOverlapQuery->where('start_time', '<', $booking->end_time)
+                        ->where('end_time', '>', $booking->start_time);
                 })
                 ->exists();
 
@@ -90,7 +88,7 @@ class BookingApprovalController extends Controller
             'return_deadline' => $returnDeadline,
         ]);
 
-        $roomName = $booking->room ? $booking->room->name : 'Fasilitas/Alat';
+        $roomName = $booking->resource_name;
 
         // Send notification to user
         AppNotification::notify(
@@ -124,7 +122,7 @@ class BookingApprovalController extends Controller
             'approved_at' => now(),
         ]);
 
-        $roomName = $booking->room ? $booking->room->name : 'Fasilitas/Alat';
+        $roomName = $booking->resource_name;
 
         // Send notification to user
         AppNotification::notify(
