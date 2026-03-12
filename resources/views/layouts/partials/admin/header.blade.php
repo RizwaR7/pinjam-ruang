@@ -12,12 +12,51 @@
     </div>
 
     <!-- Right: User menu -->
-    <div class="flex items-center gap-3" x-data="{ open: false }">
+    <div class="flex items-center gap-3">
+        <!-- Notifications -->
+        <div class="relative" x-data="{ 
+            open: false, 
+            count: 0,
+            fetchCount() {
+                fetch('{{ route('api.notifications.unread-count') }}')
+                    .then(r => r.json())
+                    .then(data => this.count = data.count);
+            }
+        }" x-init="fetchCount(); setInterval(() => fetchCount(), 30000)">
+            <button @click="open = !open" 
+                class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-navy-600 transition-colors relative">
+                <i data-feather="bell" class="w-5 h-5"></i>
+                <span x-show="count > 0" x-text="count" 
+                    class="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white"></span>
+            </button>
+
+            <!-- Notification Dropdown -->
+            <div x-show="open" @click.outside="open = false" x-transition
+                class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 py-2 z-50">
+                <div class="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest">Notifikasi</h3>
+                    <a href="{{ route('notifications.index') }}" class="text-[10px] font-bold text-navy-600 hover:underline">Lihat Semua</a>
+                </div>
+                <div class="max-h-64 overflow-y-auto" id="notification-items">
+                    <div x-show="count === 0" class="px-4 py-8 text-center text-xs text-slate-400">
+                        Tidak ada notikasi baru
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-px h-6 bg-slate-200 mx-1"></div>
+
+        <div class="flex items-center gap-3" x-data="{ open: false }">
         <button @click.stop="open = !open"
             class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors">
             <div
-                class="w-8 h-8 rounded-full bg-gradient-to-br from-navy-500 to-navy-700 text-white flex items-center justify-center font-bold text-xs">
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                class="w-8 h-8 rounded-full bg-gradient-to-br from-navy-500 to-navy-700 text-white flex items-center justify-center font-bold text-xs overflow-hidden">
+                @if(Auth::user()->avatar)
+                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                @else
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                @endif
             </div>
             <div class="hidden sm:block text-left">
                 <p class="text-sm font-semibold text-slate-700 leading-tight">{{ Auth::user()->name }}</p>

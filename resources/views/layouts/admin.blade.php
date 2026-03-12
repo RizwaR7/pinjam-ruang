@@ -95,7 +95,7 @@
         @include('layouts.partials.admin.navbar-vertical-admin')
 
         <!-- Main content -->
-        <div class="flex-1 flex flex-col min-h-screen" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
+        <div class="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
             @include('layouts.partials.admin.header')
 
             <main id="main-content" class="flex-1 p-6 lg:p-8">

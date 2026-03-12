@@ -23,8 +23,7 @@
         @endif
 
         <div class="bg-white/80 backdrop-blur-xl border border-white rounded-3xl shadow-xl overflow-hidden">
-            <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" hx-boost="false">
-                class="divide-y divide-slate-100">
+            <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" hx-boost="false" class="divide-y divide-slate-100">
                 @csrf
                 @method('PUT')
 
@@ -49,8 +48,7 @@
                             <i data-feather="camera" class="w-6 h-6 mb-1"></i>
                             <span class="text-[10px] font-medium uppercase tracking-wider">Ubah Foto</span>
                         </label>
-                        <input type="file" name="avatar" class="border p-2">
-                        accept="image/jpeg, image/png, image/webp" onchange="previewImage(event)">
+                        <input type="file" name="avatar" id="avatar_upload" hidden accept="image/jpeg, image/png, image/webp" onchange="previewImage(event)">
                     </div>
 
                     <div class="flex-1 space-y-4 z-10 w-full">
@@ -116,22 +114,19 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function previewImage(event) {
-                const input = event.target;
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        // Find the image element inside the avatar ring and replace its src
-                        const img = input.closest('.relative.group').querySelector('img');
-                        if (img) {
-                            img.src = e.target.result;
-                        }
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = input.closest('.relative.group').querySelector('img');
+                    if (img) {
+                        img.src = e.target.result;
                     }
-                    reader.readAsDataURL(input.files[0]);
                 }
+                reader.readAsDataURL(input.files[0]);
             }
-        </script>
-    @endpush
+        }
+    </script>
 @endsection
