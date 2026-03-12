@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
 use App\Models\Booking;
 use App\Models\Equipment;
 use App\Models\FinePayment;
 use App\Models\Room;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -27,11 +30,20 @@ class BookingController extends Controller
 
         $bookings = $query->orderByDesc('created_at')->paginate(10);
 
+        $rawStats = Booking::where('user_id', auth()->id())
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(status = "pending") as pending,
+                SUM(status = "approved") as approved,
+                SUM(status = "rejected") as rejected
+            ')
+            ->first();
+
         $stats = [
-            'total' => Booking::where('user_id', auth()->id())->count(),
-            'pending' => Booking::where('user_id', auth()->id())->where('status', 'pending')->count(),
-            'approved' => Booking::where('user_id', auth()->id())->where('status', 'approved')->count(),
-            'rejected' => Booking::where('user_id', auth()->id())->where('status', 'rejected')->count(),
+            'total'    => (int) ($rawStats->total ?? 0),
+            'pending'  => (int) ($rawStats->pending ?? 0),
+            'approved' => (int) ($rawStats->approved ?? 0),
+            'rejected' => (int) ($rawStats->rejected ?? 0),
         ];
 
         return view('bookings.index', compact('bookings', 'stats'));
@@ -120,10 +132,21 @@ class BookingController extends Controller
 
         // Attach equipment
         if ($request->filled('equipment')) {
-            foreach ($request->equipment as $equipmentItem) {
-                if (!empty($equipmentItem['id']) && !empty($equipmentItem['quantity'])) {
-                    $booking->equipment()->attach($equipmentItem['id'], ['quantity' => $equipmentItem['quantity']]);
+            $now = now();
+            $pivotRows = [];
+            foreach ($request->equipment as $item) {
+                if (!empty($item['id']) && !empty($item['quantity'])) {
+                    $pivotRows[] = [
+                        'booking_id'   => $booking->id,
+                        'equipment_id' => $item['id'],
+                        'quantity'     => $item['quantity'],
+                        'created_at'   => $now,
+                        'updated_at'   => $now,
+                    ];
                 }
+            }
+            if (!empty($pivotRows)) {
+                DB::table('booking_equipment')->insert($pivotRows);
             }
         }
 
@@ -172,20 +195,18 @@ class BookingController extends Controller
         ]);
 
         // Notify admins
-        $admins = \App\Models\User::whereHas('role', function ($q) {
+        $adminIds = User::whereHas('role', function ($q) {
             $q->whereIn('slug', ['pengelola_sistem', 'pengelola_gedung']);
-        })->get();
+        })->pluck('id');
 
-        foreach ($admins as $admin) {
-            \App\Models\AppNotification::notify(
-                $admin->id,
-                'Permintaan Pengembalian 📦',
-                'Peminjam ' . auth()->user()->name . ' mengajukan pengembalian.',
-                'info',
-                'package',
-                ['booking_id' => $booking->id]
-            );
-        }
+        AppNotification::notifyMany(
+            $adminIds,
+            'Permintaan Pengembalian 📦',
+            'Peminjam ' . auth()->user()->name . ' mengajukan pengembalian.',
+            'info',
+            'package',
+            ['booking_id' => $booking->id]
+        );
 
         return back()->with('success', 'Permintaan pengembalian berhasil diajukan. Menunggu konfirmasi admin.');
     }

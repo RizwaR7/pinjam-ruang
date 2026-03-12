@@ -39,11 +39,18 @@ class RoomController extends Controller
         $buildings = Room::whereNotNull('building')->distinct()->pluck('building')->sort()->values();
         $faculties = Room::whereNotNull('faculty')->distinct()->pluck('faculty')->sort()->values();
 
+        $rawStats = Room::selectRaw('
+            COUNT(*) as total,
+            SUM(status = "tersedia") as tersedia,
+            SUM(status = "dipakai") as dipakai,
+            SUM(status = "maintenance") as maintenance
+        ')->first();
+
         $stats = [
-            'total' => Room::count(),
-            'tersedia' => Room::where('status', 'tersedia')->count(),
-            'dipakai' => Room::where('status', 'dipakai')->count(),
-            'maintenance' => Room::where('status', 'maintenance')->count(),
+            'total'       => (int) ($rawStats->total ?? 0),
+            'tersedia'    => (int) ($rawStats->tersedia ?? 0),
+            'dipakai'     => (int) ($rawStats->dipakai ?? 0),
+            'maintenance' => (int) ($rawStats->maintenance ?? 0),
         ];
 
         return view('admin.rooms.index', compact('rooms', 'buildings', 'faculties', 'stats'));

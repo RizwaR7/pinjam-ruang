@@ -19,14 +19,25 @@ class HomeController extends Controller
      */
     public function adminHome()
     {
+        $roomStats = Room::selectRaw('
+            COUNT(*) as total_rooms,
+            SUM(status = "tersedia") as rooms_available,
+            SUM(status = "maintenance") as rooms_maintenance
+        ')->first();
+
+        $bookingStats = Booking::selectRaw('
+            COUNT(*) as total_bookings,
+            SUM(status = "pending") as pending_bookings,
+            SUM(status = "approved" AND booking_date = ?) as approved_today
+        ', [now()->toDateString()])->first();
+
         $stats = [
-            'total_rooms' => Room::count(),
-            'rooms_available' => Room::where('status', 'tersedia')->count(),
-            'rooms_maintenance' => Room::where('status', 'maintenance')->count(),
-            'pending_bookings' => Booking::where('status', 'pending')->count(),
-            'approved_today' => Booking::where('status', 'approved')
-                ->where('booking_date', now()->toDateString())->count(),
-            'total_bookings' => Booking::count(),
+            'total_rooms'      => (int) ($roomStats->total_rooms ?? 0),
+            'rooms_available'  => (int) ($roomStats->rooms_available ?? 0),
+            'rooms_maintenance' => (int) ($roomStats->rooms_maintenance ?? 0),
+            'pending_bookings' => (int) ($bookingStats->pending_bookings ?? 0),
+            'approved_today'   => (int) ($bookingStats->approved_today ?? 0),
+            'total_bookings'   => (int) ($bookingStats->total_bookings ?? 0),
         ];
 
         $recentBookings = Booking::with(['user', 'room'])
@@ -50,11 +61,20 @@ class HomeController extends Controller
     {
         $user = auth()->user();
 
+        $rawStats = Booking::where('user_id', $user->id)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(status = "pending") as pending,
+                SUM(status = "approved") as approved,
+                SUM(status = "rejected") as rejected
+            ')
+            ->first();
+
         $stats = [
-            'total' => Booking::where('user_id', $user->id)->count(),
-            'pending' => Booking::where('user_id', $user->id)->where('status', 'pending')->count(),
-            'approved' => Booking::where('user_id', $user->id)->where('status', 'approved')->count(),
-            'rejected' => Booking::where('user_id', $user->id)->where('status', 'rejected')->count(),
+            'total'    => (int) ($rawStats->total ?? 0),
+            'pending'  => (int) ($rawStats->pending ?? 0),
+            'approved' => (int) ($rawStats->approved ?? 0),
+            'rejected' => (int) ($rawStats->rejected ?? 0),
         ];
 
         $upcomingBookings = Booking::with('room')
