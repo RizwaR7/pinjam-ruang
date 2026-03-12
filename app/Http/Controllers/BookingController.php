@@ -120,9 +120,9 @@ class BookingController extends Controller
 
         // Attach equipment
         if ($request->filled('equipment')) {
-            foreach ($request->equipment as $item) {
-                if (!empty($item['id']) && !empty($item['quantity'])) {
-                    $booking->equipment()->attach($item['id'], ['quantity' => $item['quantity']]);
+            foreach ($request->equipment as $equipmentItem) {
+                if (!empty($equipmentItem['id']) && !empty($equipmentItem['quantity'])) {
+                    $booking->equipment()->attach($equipmentItem['id'], ['quantity' => $equipmentItem['quantity']]);
                 }
             }
         }

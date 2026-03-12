@@ -20,8 +20,8 @@ class UserRoleMiddleware
         }
 
         $allowed = collect($roles)
-            ->flatMap(fn($r) => preg_split('/[|,]/', (string) $r))
-            ->map(fn($value) => trim($value))
+            ->flatMap(fn($roleEntry) => preg_split('/[|,]/', (string) $roleEntry))
+            ->map(fn($rolePart) => trim($rolePart))
             ->filter();
 
         if ($allowed->isEmpty()) {

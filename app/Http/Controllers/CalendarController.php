@@ -91,11 +91,11 @@ class CalendarController extends Controller
                 'capacity' => $room->capacity,
             ],
             'date' => $request->date,
-            'bookings' => $bookings->map(fn($b) => [
-                'start_time' => substr($b->start_time, 0, 5),
-                'end_time' => substr($b->end_time, 0, 5),
-                'purpose' => $b->purpose,
-                'status' => $b->status,
+            'bookings' => $bookings->map(fn($booking) => [
+                'start_time' => substr($booking->start_time, 0, 5),
+                'end_time' => substr($booking->end_time, 0, 5),
+                'purpose' => $booking->purpose,
+                'status' => $booking->status,
             ]),
         ]);
     }
