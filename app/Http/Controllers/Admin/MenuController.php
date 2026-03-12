@@ -27,10 +27,10 @@ class MenuController extends Controller
     /**Search */
     public function search(Request $request)
     {
-        $query = $request->query('q');
+        $searchTerm = $request->query('q');
 
         // Kalau kosong, render ulang seperti default
-        if (!$query) {
+        if (!$searchTerm) {
             $dynamicMenus = Menu::whereNull('parent_id')
                 ->where('context', 'admin')
                 ->with('children') // penting!
@@ -41,7 +41,7 @@ class MenuController extends Controller
         }
 
         $menus = Menu::where('context', 'admin')
-            ->where('name', 'like', '%' . $query . '%')
+            ->where('name', 'like', '%' . $searchTerm . '%')
             ->orderBy('sort_order')
             ->get();
 

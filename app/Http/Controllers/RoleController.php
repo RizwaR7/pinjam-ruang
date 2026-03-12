@@ -49,9 +49,9 @@ class RoleController extends Controller
 
         // Pastikan slug unik meski di-generate otomatis
         $originalSlug = $validated['slug'];
-        $count = 1;
+        $slugSuffix = 1;
         while (Role::where('slug', $validated['slug'])->exists()) {
-            $validated['slug'] = $originalSlug . '-' . $count++;
+            $validated['slug'] = $originalSlug . '-' . $slugSuffix++;
         }
 
         Role::create($validated);
@@ -91,9 +91,9 @@ class RoleController extends Controller
         // Pastikan slug unik jika berubah
         if ($validated['slug'] !== $role->slug) {
             $originalSlug = $validated['slug'];
-            $count = 1;
+            $slugSuffix = 1;
             while (Role::where('slug', $validated['slug'])->where('id', '!=', $role->id)->exists()) {
-                $validated['slug'] = $originalSlug . '-' . $count++;
+                $validated['slug'] = $originalSlug . '-' . $slugSuffix++;
             }
         }
 
