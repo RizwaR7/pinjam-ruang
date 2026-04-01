@@ -16,6 +16,7 @@ class Booking extends Model
         'user_id',
         'room_id',
         'booking_date',
+        'end_date',
         'start_time',
         'end_time',
         'purpose',
@@ -36,6 +37,7 @@ class Booking extends Model
 
     protected $casts = [
         'booking_date' => 'date',
+        'end_date' => 'date',
         'approved_at' => 'datetime',
         'return_deadline' => 'datetime',
         'returned_at' => 'datetime',

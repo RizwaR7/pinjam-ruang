@@ -12,7 +12,7 @@
                 </path>
             </svg>
         </div>
-        <span class="text-lg font-extrabold text-slate-800 tracking-tight">SIPERA</span>
+        <span class="text-lg font-extrabold text-slate-800 tracking-tight">SIRUANG</span>
         <span class="ml-auto text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">USER</span>
     </div>
 

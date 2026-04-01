@@ -13,6 +13,10 @@ use App\Http\Controllers\Admin\MenuController;
 
 Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
 
+// ── Public Calendar (no auth) ─────────────────────────────
+Route::get('/jadwal-ruangan', [\App\Http\Controllers\CalendarController::class, 'publicIndex'])->name('public.calendar');
+Route::get('/api/public/calendar-events', [\App\Http\Controllers\CalendarController::class, 'publicEvents'])->name('api.public.calendar-events');
+
 // ── Admin Login Route ─────────────────────────────────────
 Route::get('login/admin', [\App\Http\Controllers\Auth\LoginController::class, 'showAdminLoginForm'])->name('admin.login');
 
@@ -89,6 +93,8 @@ Route::middleware(['auth', 'user-role:pengelola_sistem,pengelola_gedung'])->pref
 
     // ── Notifikasi (Admin) ────────────────────────────
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 
     // ── Menu Search ───────────────────────────────────
     Route::get('/menu-search', [MenuController::class, 'search'])->name('menus.search');
@@ -99,4 +105,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/calendar-events', [App\Http\Controllers\CalendarController::class, 'events'])->name('api.calendar-events');
     Route::get('/api/room-availability', [App\Http\Controllers\CalendarController::class, 'checkAvailability'])->name('api.room-availability');
     Route::get('/api/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('api.notifications.unread-count');
+    Route::get('/api/notifications/recent', [App\Http\Controllers\NotificationController::class, 'recent'])->name('api.notifications.recent');
 });

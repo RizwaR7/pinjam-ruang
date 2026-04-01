@@ -3,11 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'SIPERA') }} — Booking Ruangan Universitas</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'SIRUANG') }} — Booking Ruangan Universitas</title>
     @vite(['resources/css/app.css'])
     
-    <!-- AlpineJS & Feather Icons -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- AlpineJS & Feather Icons -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
@@ -25,6 +24,10 @@
     <style>
         [x-cloak] { display: none !important; }
         .page-fade-out { opacity: 0; transition: opacity 0.25s ease-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans antialiased overflow-x-hidden min-h-screen flex flex-col transition-colors duration-300" 
@@ -49,10 +52,16 @@
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20 transition-colors duration-300">
                     <i data-feather="calendar" class="w-5 h-5"></i>
                 </div>
-                <span class="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white transition-colors duration-300">SIPERA</span>
+                <span class="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white transition-colors duration-300">SIRUANG</span>
             </a>
             
             <div class="flex items-center gap-4">
+                <!-- Lihat Jadwal Link (scroll to section) -->
+                <a href="#jadwal" class="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    <i data-feather="calendar" class="w-4 h-4"></i>
+                    Lihat Jadwal
+                </a>
+                
                 <!-- Theme Toggle Button -->
                 <button @click="toggleTheme()" class="p-2 mr-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Toggle Dark/Light Mode">
                     <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -77,7 +86,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-300">
+    <section class="relative pt-24 pb-16 lg:pt-32 lg:pb-20 overflow-hidden bg-white dark:bg-slate-900 transition-colors duration-300">
         <!-- Background decoration -->
         <div class="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-blue-50/50 dark:from-blue-900/20 to-white/0 dark:to-slate-900/0 pointer-events-none"></div>
         <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -117,8 +126,153 @@
         </div>
     </section>
 
+    <!-- Calendar Section - Simple & Clean -->
+    <section class="bg-slate-50 dark:bg-slate-800/30 border-y border-slate-200 dark:border-slate-700/50 py-10 transition-colors duration-300" x-data="publicCalendar()" id="jadwal">
+        <div class="max-w-7xl mx-auto px-6"><div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i data-feather="calendar" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
+                    Jadwal Ruangan
+                </h2>
+                <div class="flex items-center gap-2">
+                    <!-- Filter dropdown -->
+                    <select x-model="filterRoom" @change="loadEvents()"
+                        class="px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+                        <option value="">Semua Ruangan</option>
+                        @foreach($allRooms as $room)
+                            <option value="{{ $room->id }}">{{ $room->name }}</option>
+                        @endforeach
+                    </select>
+                    <!-- Month nav -->
+                    <div class="flex items-center border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                        <button @click="prevMonth()" class="px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                            <i data-feather="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <span x-text="monthYearTitle" class="px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-[90px] text-center border-x border-slate-200 dark:border-slate-600"></span>
+                        <button @click="nextMonth()" class="px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                            <i data-feather="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekday Header -->
+            <div class="grid grid-cols-7 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                <template x-for="day in ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']">
+                    <div class="py-2 text-center text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase" x-text="day"></div>
+                </template>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-7">
+                <template x-for="(cell, idx) in calendarCells" :key="idx">
+                    <div class="min-h-[72px] p-1.5 border-b border-r border-slate-100 dark:border-slate-700/50 cursor-pointer transition-colors"
+                        :class="{
+                            'bg-blue-50 dark:bg-blue-900/30': cell.isToday,
+                            'bg-slate-50/50 dark:bg-slate-800/50': cell.isPast && !cell.isToday && cell.date,
+                            'hover:bg-slate-50 dark:hover:bg-slate-700/30': cell.date && !cell.isToday,
+                            'bg-slate-50 dark:bg-slate-900/30': !cell.date
+                        }"
+                        @click="cell.date && showDayModal(cell.date)">
+                        
+                        <span class="text-xs font-medium"
+                            :class="{
+                                'inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-[11px]': cell.isToday,
+                                'text-slate-300 dark:text-slate-600': !cell.date,
+                                'text-slate-400 dark:text-slate-500': cell.isPast && !cell.isToday,
+                                'text-slate-700 dark:text-slate-300': cell.date && !cell.isPast && !cell.isToday
+                            }"
+                            x-text="cell.day || ''"></span>
+
+                        <div class="mt-0.5 space-y-0.5">
+                            <template x-for="(ev, evIdx) in (cell.events || []).slice(0, 2)" :key="ev.id">
+                                <div class="px-1 py-0.5 text-[9px] font-medium rounded truncate"
+                                    :class="ev.status === 'in_use' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400' : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'"
+                                    x-text="ev.start_time"></div>
+                            </template>
+                            <template x-if="cell.events && cell.events.length > 2">
+                                <div class="text-[9px] text-slate-400 dark:text-slate-500 pl-1" x-text="'+' + (cell.events.length - 2) + ' lagi'"></div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Footer Legend -->
+            <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-4 text-[10px] text-slate-500 dark:text-slate-400">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Terjadwal</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Sedang Dipakai</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Hari Ini</span>
+            </div>
+        </div></div>
+
+        <!-- Day Detail Modal -->
+        <div x-show="showModal" x-cloak x-transition
+            class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showModal = false"></div>
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all border border-slate-200 dark:border-slate-700"
+                    @click.away="showModal = false">
+                    
+                    <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white" x-text="modalTitle"></h3>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400" x-text="modalEvents.length + ' jadwal'"></p>
+                        </div>
+                        <button @click="showModal = false" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                            <i data-feather="x" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 max-h-[40vh] overflow-y-auto custom-scrollbar">
+                        <template x-if="modalEvents.length === 0">
+                            <div class="py-6 text-center">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center mx-auto mb-2">
+                                    <i data-feather="check-circle" class="w-5 h-5 text-emerald-500"></i>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300">Tidak ada jadwal</p>
+                            </div>
+                        </template>
+
+                        <div class="space-y-2">
+                            <template x-for="ev in modalEvents" :key="ev.id">
+                                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                                    <div class="flex items-start justify-between gap-2 mb-1">
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white" x-text="ev.room"></p>
+                                        <span class="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                                            :class="ev.status === 'in_use' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'"
+                                            x-text="ev.status === 'in_use' ? 'Dipakai' : 'Terjadwal'"></span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400" x-text="ev.start_time + ' - ' + ev.end_time"></p>
+                                    <p class="text-[10px] text-slate-600 dark:text-slate-300 mt-1 truncate" x-text="ev.title"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 rounded-b-2xl">
+                        @auth
+                        <a href="{{ route('bookings.create') }}" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all">
+                            <i data-feather="plus" class="w-3.5 h-3.5"></i>
+                            Ajukan Peminjaman
+                        </a>
+                        @else
+                        <a href="{{ route('login') }}" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all">
+                            <i data-feather="log-in" class="w-3.5 h-3.5"></i>
+                            Login untuk Pinjam
+                        </a>
+                        @endauth
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Marketplace / Catalog Section -->
-    <main class="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
+    <main class="flex-1 max-w-7xl mx-auto px-6 pt-12 pb-16 w-full">
         
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-bold text-slate-800 dark:text-white">
@@ -225,7 +379,7 @@
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white font-bold transition-colors duration-300">
                             <i data-feather="calendar" class="w-4 h-4"></i>
                         </div>
-                        <span class="text-xl font-extrabold tracking-tight text-white">SIPERA</span>
+                        <span class="text-xl font-extrabold tracking-tight text-white">SIRUANG</span>
                     </a>
                     <p class="text-slate-400 text-sm max-w-sm mb-6 leading-relaxed">
                         Sistem Informasi Peminjaman Ruangan Universitas. Platform digital cerdas untuk mendukung efisiensi akademik dan kegiatan mahasiswa.
@@ -278,6 +432,107 @@
         window.addEventListener('pageshow', (e) => {
             if (e.persisted) document.body.classList.remove('page-fade-out');
         });
+
+        // Public Calendar Component
+        function publicCalendar() {
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const allRooms = @json($allRooms);
+            
+            return {
+                currentDate: new Date(),
+                events: [],
+                calendarCells: [],
+                filterRoom: '',
+                showModal: false,
+                modalTitle: '',
+                modalEvents: [],
+
+                get monthYearTitle() {
+                    return monthNames[this.currentDate.getMonth()] + ' ' + this.currentDate.getFullYear();
+                },
+
+                init() {
+                    this.loadEvents();
+                },
+
+                async loadEvents() {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth();
+                    const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+                    const lastDay = new Date(year, month + 1, 0).getDate();
+                    const end = `${year}-${String(month + 1).padStart(2, '0')}-${lastDay}`;
+
+                    let url = `{{ route('api.public.calendar-events') }}?start=${start}&end=${end}`;
+                    if (this.filterRoom) url += `&room_id=${this.filterRoom}`;
+
+                    try {
+                        const res = await fetch(url);
+                        this.events = await res.json();
+                        this.renderCalendar();
+                    } catch (e) {
+                        this.events = [];
+                        this.renderCalendar();
+                    }
+                },
+
+                renderCalendar() {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const lastDate = new Date(year, month + 1, 0).getDate();
+                    const startDay = firstDay === 0 ? 6 : firstDay - 1;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    let cells = [];
+
+                    for (let i = 0; i < startDay; i++) {
+                        cells.push({ day: null, date: null, events: [], isToday: false, isPast: false });
+                    }
+
+                    for (let d = 1; d <= lastDate; d++) {
+                        const cellDate = new Date(year, month, d);
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        const dayEvents = this.events.filter(e => e.date === dateStr);
+                        const isToday = today.getTime() === cellDate.getTime();
+                        const isPast = cellDate < today && !isToday;
+
+                        cells.push({
+                            day: d,
+                            date: dateStr,
+                            events: dayEvents,
+                            isToday,
+                            isPast
+                        });
+                    }
+
+                    while (cells.length % 7 !== 0) {
+                        cells.push({ day: null, date: null, events: [], isToday: false, isPast: false });
+                    }
+
+                    this.calendarCells = cells;
+                    this.$nextTick(() => feather.replace());
+                },
+
+                showDayModal(dateStr) {
+                    const d = new Date(dateStr);
+                    this.modalTitle = d.getDate() + ' ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
+                    this.modalEvents = this.events.filter(e => e.date === dateStr);
+                    this.showModal = true;
+                    this.$nextTick(() => feather.replace());
+                },
+
+                prevMonth() {
+                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                    this.loadEvents();
+                },
+
+                nextMonth() {
+                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                    this.loadEvents();
+                }
+            };
+        }
     </script>
 </body>
 </html>

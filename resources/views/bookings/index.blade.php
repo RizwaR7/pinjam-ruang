@@ -63,7 +63,13 @@
                                         <span class="block text-xs text-slate-400 font-mono">Tanpa Ruangan</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">{{ $booking->booking_date->format('d M Y') }}
+                                <td class="px-6 py-4 font-medium text-slate-700">
+                                    @if($booking->end_date && $booking->end_date->gt($booking->booking_date))
+                                        {{ $booking->booking_date->format('d M') }} - {{ $booking->end_date->format('d M Y') }}
+                                        <span class="block text-xs text-slate-400">({{ $booking->booking_date->diffInDays($booking->end_date) + 1 }} hari)</span>
+                                    @else
+                                        {{ $booking->booking_date->format('d M Y') }}
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-slate-600 font-mono text-xs">
                                     {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
@@ -127,7 +133,11 @@
                                 class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200 shrink-0">{{ $booking->status_label }}</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mb-1.5">
-                            <span>📅 {{ $booking->booking_date->format('d M Y') }}</span>
+                            @if($booking->end_date && $booking->end_date->gt($booking->booking_date))
+                                <span>📅 {{ $booking->booking_date->format('d M') }} - {{ $booking->end_date->format('d M Y') }} ({{ $booking->booking_date->diffInDays($booking->end_date) + 1 }} hari)</span>
+                            @else
+                                <span>📅 {{ $booking->booking_date->format('d M Y') }}</span>
+                            @endif
                             <span class="font-mono">🕐
                                 {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</span>
                         </div>

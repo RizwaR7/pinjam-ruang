@@ -38,7 +38,7 @@
 
         <!-- Text -->
         <div class="mt-8 text-center">
-            <h3 class="text-xl font-extrabold text-navy-900 dark:text-white tracking-tight animate-pulse">SIPERA</h3>
+            <h3 class="text-xl font-extrabold text-navy-900 dark:text-white tracking-tight animate-pulse">SIRUANG</h3>
             <p class="text-xs font-semibold text-slate-500 dark:text-navy-300 tracking-widest uppercase mt-1">Memuat
                 Sistem...</p>
         </div>

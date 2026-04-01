@@ -17,12 +17,18 @@
         <div class="relative" x-data="{ 
             open: false, 
             count: 0,
+            notifications: [],
             fetchCount() {
                 fetch('{{ route('api.notifications.unread-count') }}')
                     .then(r => r.json())
                     .then(data => this.count = data.count);
+            },
+            fetchNotifications() {
+                fetch('{{ route('api.notifications.recent') }}')
+                    .then(r => r.json())
+                    .then(data => this.notifications = data.notifications);
             }
-        }" x-init="fetchCount(); setInterval(() => fetchCount(), 30000)">
+        }" x-init="fetchCount(); fetchNotifications(); setInterval(() => { fetchCount(); fetchNotifications(); }, 30000)">
             <button @click="open = !open" 
                 class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-navy-600 transition-colors relative">
                 <i data-feather="bell" class="w-5 h-5"></i>
@@ -35,12 +41,34 @@
                 class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 py-2 z-50">
                 <div class="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-widest">Notifikasi</h3>
-                    <a href="{{ route('notifications.index') }}" class="text-[10px] font-bold text-navy-600 hover:underline">Lihat Semua</a>
+                    <a href="{{ route('admin.notifications.index') }}" class="text-[10px] font-bold text-navy-600 hover:underline">Lihat Semua</a>
                 </div>
-                <div class="max-h-64 overflow-y-auto" id="notification-items">
-                    <div x-show="count === 0" class="px-4 py-8 text-center text-xs text-slate-400">
-                        Tidak ada notikasi baru
-                    </div>
+                <div class="max-h-64 overflow-y-auto">
+                    <template x-if="notifications.length === 0">
+                        <div class="px-4 py-8 text-center text-xs text-slate-400">
+                            Tidak ada notifikasi baru
+                        </div>
+                    </template>
+                    <template x-for="notif in notifications" :key="notif.id">
+                        <div class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-0">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                    :class="{
+                                        'bg-emerald-50 text-emerald-500': notif.type === 'success',
+                                        'bg-rose-50 text-rose-500': notif.type === 'danger',
+                                        'bg-amber-50 text-amber-500': notif.type === 'warning',
+                                        'bg-sky-50 text-sky-500': notif.type === 'info' || !notif.type
+                                    }">
+                                    <i data-feather="bell" class="w-4 h-4"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-slate-800 truncate" x-text="notif.title"></p>
+                                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2" x-text="notif.message"></p>
+                                    <p class="text-[10px] text-slate-400 mt-1" x-text="notif.time"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>

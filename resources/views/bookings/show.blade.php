@@ -81,7 +81,13 @@
                             <div class="space-y-1">
                                 <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tanggal</label>
                                 <p class="text-slate-800 font-semibold text-lg">
-                                    {{ $booking->booking_date->format('l, d F Y') }}</p>
+                                    @if($booking->end_date && $booking->end_date->gt($booking->booking_date))
+                                        {{ $booking->booking_date->format('d M Y') }} — {{ $booking->end_date->format('d M Y') }}
+                                        <span class="text-sm font-normal text-slate-500">({{ $booking->booking_date->diffInDays($booking->end_date) + 1 }} hari)</span>
+                                    @else
+                                        {{ $booking->booking_date->format('l, d F Y') }}
+                                    @endif
+                                </p>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Waktu</label>

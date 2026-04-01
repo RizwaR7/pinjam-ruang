@@ -25,10 +25,13 @@ class WelcomeController extends Controller
         }
 
         // Get unique buildings for the filter wrapper
-        $buildings = Room::where('is_active', true)->whereNotNull('building')->distinct()->pluck('building');
+        $buildings = Room::where('is_active', true)->whereNotNull('building')->distinct()->pluck('building')->sort()->values();
 
         $rooms = $query->orderBy('name')->paginate(12)->withQueryString();
 
-        return view('welcome', compact('rooms', 'buildings'));
+        // All rooms for calendar filter
+        $allRooms = Room::where('is_active', true)->orderBy('building')->orderBy('name')->get();
+
+        return view('welcome', compact('rooms', 'buildings', 'allRooms'));
     }
 }

@@ -96,7 +96,16 @@
                                         <span class="block text-xs text-slate-400 font-mono">Tanpa Ruangan</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">{{ $booking->booking_date->format('d M Y') }}</td>
+                                <td class="px-6 py-4 font-medium text-slate-700">
+                                    @php
+                                        $bEnd  = $booking->end_date ?? $booking->booking_date;
+                                        $bDays = $booking->booking_date->diffInDays($bEnd) + 1;
+                                    @endphp
+                                    {{ $booking->booking_date->format('d M Y') }}
+                                    @if($bDays > 1)
+                                        <span class="block text-xs text-indigo-600 font-semibold">s/d {{ $bEnd->format('d M Y') }} · {{ $bDays }} hari</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 text-slate-600 font-mono text-xs">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
                                 <td class="px-6 py-4 text-slate-500 truncate max-w-[180px]">{{ $booking->purpose }}</td>
                                 <td class="px-6 py-4 text-center">
@@ -138,7 +147,11 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 border border-{{ $c }}-200 shrink-0">{{ $booking->status_label }}</span>
                         </div>
                         <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 pl-10 mb-1">
-                            <span>📅 {{ $booking->booking_date->format('d M Y') }}</span>
+                            @php
+                                $bEnd2  = $booking->end_date ?? $booking->booking_date;
+                                $bDays2 = $booking->booking_date->diffInDays($bEnd2) + 1;
+                            @endphp
+                            <span>📅 {{ $booking->booking_date->format('d M Y') }}{{ $bDays2 > 1 ? ' – ' . $bEnd2->format('d M Y') . ' (' . $bDays2 . ' hari)' : '' }}</span>
                             <span class="font-mono">🕐 {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}–{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</span>
                         </div>
                         <p class="text-xs text-slate-400 pl-10 line-clamp-1">{{ $booking->purpose }}</p>

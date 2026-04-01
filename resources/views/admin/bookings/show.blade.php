@@ -54,7 +54,37 @@
                                 @endif
                             </div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Peminjam</label><div class="flex items-center gap-3 mt-1"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-navy-500 to-navy-500 text-white flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($booking->user->name, 0, 1)) }}</div><div><p class="text-slate-800 font-semibold">{{ $booking->user->name }}</p><p class="text-xs text-slate-500">{{ $booking->user->email }}{{ $booking->user->role ? ' · ' . $booking->user->role->name : '' }}</p></div></div></div>
-                            <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tanggal</label><p class="text-slate-800 font-semibold">{{ $booking->booking_date->format('l, d F Y') }}</p></div>
+                            @php
+                                $startDate = $booking->booking_date;
+                                $endDate   = $booking->end_date ?? $startDate;
+                                $days      = $startDate->diffInDays($endDate) + 1;
+                                $isMulti   = $days > 1;
+                            @endphp
+                            <div class="space-y-1 {{ $isMulti ? 'md:col-span-2' : '' }}">
+                                <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tanggal</label>
+                                @if($isMulti)
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+                                        <div class="flex items-center gap-3">
+                                            <div class="text-center">
+                                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Mulai</p>
+                                                <p class="text-slate-800 font-semibold">{{ $startDate->format('D, d M Y') }}</p>
+                                            </div>
+                                            <svg class="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                                            <div class="text-center">
+                                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Selesai</p>
+                                                <p class="text-slate-800 font-semibold">{{ $endDate->format('D, d M Y') }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold shrink-0">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            {{ $days }} Hari
+                                        </span>
+                                    </div>
+                                @else
+                                    <p class="text-slate-800 font-semibold">{{ $startDate->format('l, d F Y') }}</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">1 hari</p>
+                                @endif
+                            </div>
                             <div class="space-y-1"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Waktu</label><p class="text-slate-800 font-semibold font-mono">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</p></div>
                             <div class="space-y-1 md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-slate-400">Tujuan Penggunaan</label><p class="text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{{ $booking->purpose }}</p></div>
                             @if($booking->participant_count || $booking->contact_phone)

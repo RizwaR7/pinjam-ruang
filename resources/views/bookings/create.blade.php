@@ -52,12 +52,21 @@
                             </div>
 
                             <!-- Date & Time -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
-                                    <label for="booking_date" class="block text-sm font-bold text-slate-700">Tanggal <span class="text-rose-500">*</span></label>
+                                    <label for="booking_date" class="block text-sm font-bold text-slate-700">Tanggal Mulai <span class="text-rose-500">*</span></label>
                                     <input type="date" id="booking_date" name="booking_date" min="{{ date('Y-m-d') }}" class="block w-full px-4 py-3 bg-slate-50 border @error('booking_date') border-rose-300 @else border-slate-200 @enderror rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white focus:outline-none" value="{{ old('booking_date') }}">
                                     @error('booking_date')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
                                 </div>
+                                <div class="space-y-2">
+                                    <label for="end_date" class="block text-sm font-bold text-slate-700">Tanggal Selesai <span class="text-slate-400 font-normal">(Kosongkan jika 1 hari)</span></label>
+                                    <input type="date" id="end_date" name="end_date" min="{{ date('Y-m-d') }}" class="block w-full px-4 py-3 bg-slate-50 border @error('end_date') border-rose-300 @else border-slate-200 @enderror rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white focus:outline-none" value="{{ old('end_date') }}">
+                                    @error('end_date')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
+                                    <p class="text-xs text-slate-500">Untuk peminjaman lebih dari 1 hari (misal: acara 3 hari berturut-turut)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
                                     <label for="start_time" class="block text-sm font-bold text-slate-700">Jam Mulai <span class="text-rose-500">*</span></label>
                                     <input type="time" id="start_time" name="start_time" class="block w-full px-4 py-3 bg-slate-50 border @error('start_time') border-rose-300 @else border-slate-200 @enderror rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white focus:outline-none" value="{{ old('start_time') }}">
@@ -67,6 +76,7 @@
                                     <label for="end_time" class="block text-sm font-bold text-slate-700">Jam Selesai <span class="text-rose-500">*</span></label>
                                     <input type="time" id="end_time" name="end_time" class="block w-full px-4 py-3 bg-slate-50 border @error('end_time') border-rose-300 @else border-slate-200 @enderror rounded-xl text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:bg-white focus:outline-none" value="{{ old('end_time') }}">
                                     @error('end_time')<p class="text-sm text-rose-500 mt-1">{{ $message }}</p>@enderror
+                                    <p class="text-xs text-slate-500">Jam berlaku untuk setiap hari dalam rentang peminjaman</p>
                                 </div>
                             </div>
 
@@ -162,6 +172,18 @@
     document.getElementById('permit_file')?.addEventListener('change', function() {
         const fileName = this.files[0]?.name || 'PDF, JPG, PNG (maks. 5MB)';
         document.getElementById('file-name').textContent = fileName;
+    });
+
+    // Sync end_date minimum with booking_date
+    document.getElementById('booking_date')?.addEventListener('change', function() {
+        const endDateInput = document.getElementById('end_date');
+        if (endDateInput) {
+            endDateInput.min = this.value;
+            // If end_date is before booking_date, clear it
+            if (endDateInput.value && endDateInput.value < this.value) {
+                endDateInput.value = '';
+            }
+        }
     });
 </script>
 @endpush

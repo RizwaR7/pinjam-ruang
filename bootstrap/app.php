@@ -15,6 +15,12 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+$sharedPublicPath = dirname(__DIR__).'/../ruang.upr.ac.id/public';
+
+if (is_dir($sharedPublicPath)) {
+    $app->usePublicPath(realpath($sharedPublicPath));
+}
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces

@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
             ],
+            publicDirectory: '../ruang.upr.ac.id/public',
             refresh: true,
         }),
     ],

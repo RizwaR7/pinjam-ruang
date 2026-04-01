@@ -32,8 +32,8 @@ class EquipmentController extends Controller
         $rawStats = Equipment::selectRaw('
             COUNT(*) as total,
             SUM(is_available = 1) as available,
-            SUM(condition = "baik") as baik,
-            SUM(condition IN ("rusak_ringan", "rusak_berat")) as rusak
+            SUM(`condition` = "baik") as baik,
+            SUM(`condition` IN ("rusak_ringan", "rusak_berat")) as rusak
         ')->first();
 
         $stats = [

@@ -71,6 +71,7 @@ class BookingController extends Controller
         $validated = $request->validate([
             'room_id' => 'nullable|exists:rooms,id',
             'booking_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'nullable|date|after_or_equal:booking_date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'purpose' => 'required|string|max:255',
@@ -83,6 +84,9 @@ class BookingController extends Controller
             'equipment.*.quantity' => 'integer|min:1',
         ]);
 
+        // Set end_date to booking_date if not provided (single day booking)
+        $endDate = $validated['end_date'] ?? $validated['booking_date'];
+
         if (empty($validated['room_id']) && empty($validated['equipment'])) {
             return redirect()->back()
                 ->withInput()
@@ -92,21 +96,34 @@ class BookingController extends Controller
 
         // Check for time conflicts only if a room is selected
         if (!empty($validated['room_id'])) {
+            // For multi-day bookings, check conflicts for each day in the range
             $conflict = Booking::where('room_id', $validated['room_id'])
-                ->where('booking_date', $validated['booking_date'])
                 ->whereIn('status', ['pending', 'approved'])
-                ->where(function ($q) use ($validated) {
-                    $q->where(function ($q2) use ($validated) {
-                        $q2->where('start_time', '<', $validated['end_time'])
-                            ->where('end_time', '>', $validated['start_time']);
+                ->where(function ($q) use ($validated, $endDate) {
+                    // Check if any existing booking overlaps with our date range
+                    $q->where(function ($q2) use ($validated, $endDate) {
+                        $q2->where('booking_date', '<=', $endDate)
+                           ->where(function ($q3) use ($validated) {
+                               $q3->where('end_date', '>=', $validated['booking_date'])
+                                  ->orWhereNull('end_date');
+                           });
+                    })
+                    ->orWhere(function ($q2) use ($validated, $endDate) {
+                        // Also check bookings without end_date (legacy single-day)
+                        $q2->whereBetween('booking_date', [$validated['booking_date'], $endDate]);
                     });
+                })
+                ->where(function ($q) use ($validated) {
+                    // Time overlap check
+                    $q->where('start_time', '<', $validated['end_time'])
+                      ->where('end_time', '>', $validated['start_time']);
                 })
                 ->exists();
 
             if ($conflict) {
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'Ruangan sudah di-booking pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
+                    ->with('error', 'Ruangan sudah di-booking pada rentang tanggal dan jam tersebut. Silakan pilih waktu lain.');
             }
         }
 
@@ -120,6 +137,7 @@ class BookingController extends Controller
             'user_id' => auth()->id(),
             'room_id' => $validated['room_id'] ?: null,
             'booking_date' => $validated['booking_date'],
+            'end_date' => $endDate,
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'purpose' => $validated['purpose'],

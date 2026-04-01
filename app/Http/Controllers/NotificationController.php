@@ -18,7 +18,11 @@ class NotificationController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view('notifications.index', compact('notifications'));
+        // Detect if admin route
+        $isAdmin = request()->routeIs('admin.*');
+        $view = $isAdmin ? 'admin.notifications.index' : 'notifications.index';
+
+        return view($view, compact('notifications'));
     }
 
     public function markAsRead(AppNotification $notification)
@@ -51,5 +55,29 @@ class NotificationController extends Controller
             ->count();
 
         return response()->json(['count' => $count]);
+    }
+
+    /**
+     * JSON API: get recent notifications for dropdown
+     */
+    public function recent()
+    {
+        $notifications = AppNotification::where('user_id', auth()->id())
+            ->where('is_read', false)
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get()
+            ->map(function ($notif) {
+                return [
+                    'id' => $notif->id,
+                    'title' => $notif->title,
+                    'message' => $notif->message,
+                    'type' => $notif->type,
+                    'icon' => $notif->icon ?? 'bell',
+                    'time' => $notif->created_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json(['notifications' => $notifications]);
     }
 }
